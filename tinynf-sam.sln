@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tinynf-sam", "tinynf-sam\ti
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "env", "env\env.csproj", "{D4C11A85-6DFC-4125-98CD-FA7B9B119404}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "utilities", "utilities\utilities.csproj", "{501C13CD-7E42-46C0-9EAD-781C92293DB8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,5 +21,9 @@ Global
 		{D4C11A85-6DFC-4125-98CD-FA7B9B119404}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D4C11A85-6DFC-4125-98CD-FA7B9B119404}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D4C11A85-6DFC-4125-98CD-FA7B9B119404}.Release|Any CPU.Build.0 = Release|Any CPU
+		{501C13CD-7E42-46C0-9EAD-781C92293DB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{501C13CD-7E42-46C0-9EAD-781C92293DB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{501C13CD-7E42-46C0-9EAD-781C92293DB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{501C13CD-7E42-46C0-9EAD-781C92293DB8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
