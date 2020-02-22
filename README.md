@@ -34,3 +34,8 @@ namespace tinynf_sam
     }
 }
 ```
+
+### To compile for linux on another machine
+```shell
+dotnet build --runtime linux-x64
+```
