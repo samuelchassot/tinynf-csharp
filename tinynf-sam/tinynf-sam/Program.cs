@@ -11,8 +11,6 @@ namespace tinynf_sam
 
         unsafe static void Main(string[] args)
         {
-
-
             uint node = uint.MaxValue;
             int v = getcpu(null, &node, null);
             Console.WriteLine("v = " + v);
