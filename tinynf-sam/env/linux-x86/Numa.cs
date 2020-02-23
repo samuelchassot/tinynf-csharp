@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace env.linuxx86
+namespace Env.linuxx86
 {
     public class Numa
     {

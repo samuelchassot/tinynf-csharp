@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tinynf-sam", "tinynf-sam\tinynf-sam.csproj", "{B1E89BA2-30D8-4334-90D4-47A93B1D52A5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "env", "env\env.csproj", "{D4C11A85-6DFC-4125-98CD-FA7B9B119404}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Env", "env\env.csproj", "{D4C11A85-6DFC-4125-98CD-FA7B9B119404}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "utilities", "utilities\utilities.csproj", "{501C13CD-7E42-46C0-9EAD-781C92293DB8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities", "utilities\utilities.csproj", "{501C13CD-7E42-46C0-9EAD-781C92293DB8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

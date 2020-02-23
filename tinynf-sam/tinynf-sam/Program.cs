@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-
+using System.Linq;
+using Env.linuxx86;
 namespace tinynf_sam
 {
     class Program
@@ -11,10 +12,8 @@ namespace tinynf_sam
 
         unsafe static void Main(string[] args)
         {
-            uint node = uint.MaxValue;
-            int v = getcpu(null, &node, null);
-            Console.WriteLine("v = " + v);
-            Console.WriteLine("current node = " + node);
+            char[] line = Filesystem.Tn_fs_readline(1024, args[0]);
+            Console.WriteLine(line);
 
         }
 

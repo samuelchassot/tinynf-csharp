@@ -1,5 +1,5 @@
 ﻿using System;
-namespace utilities
+namespace Utilities
 {
     // Logging utilities.
     // There are 4 log levels:

@@ -1,5 +1,5 @@
 ﻿using System;
-namespace env.linuxx86
+namespace Env.linuxx86
 {
     public static class Endian
     {
