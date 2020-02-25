@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using Utilities;
 
 namespace env.linuxx86
 {
@@ -9,10 +10,6 @@ namespace env.linuxx86
         private const ulong HUGEPAGE_SIZE = 1ul << (int)HUGEPAGE_SIZE_POWER;
         private const uint MAP_HUGE_SHIFT = 26;
 
-        //must use a wrapper because we can't anything but a function from a c library.
-        [DllImport(@"CWrapper.so")]
-        private static extern int cst_sc_pagesize();
-
         [DllImport("libc")]
         private static extern long sysconf(int name);
 
@@ -20,14 +17,16 @@ namespace env.linuxx86
         [DllImport("libc")]
         private static extern unsafe void* mmap(void* addr, UIntPtr length, int prot, int flags,
                   int fd, long offset);
+
+
         /// <summary>
         /// Return the page size or 0 in case of an error
         /// </summary>
         /// <returns></returns>
-        private static UIntPtr getPageSize()
+        private static UIntPtr GetPageSize()
         {
             // sysconf is documented to return -1 on error; let's check all negative cases along the way, to make sure the conversion to unsigned is sound
-            long pageSizeLong = sysconf(cst_sc_pagesize());
+            long pageSizeLong = sysconf(MacrosValues._SC_PAGESIZE.GetValue());
             if (pageSizeLong > 0)
             {
                 return (UIntPtr)pageSizeLong;

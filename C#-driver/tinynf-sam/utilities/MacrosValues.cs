@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace Utilities
 {
 
-    public enum ExternalMacrosDefinedConstantsName
+    public enum MacrosValues
     {
         _SC_PAGESIZE = 1,
         PROT_READ = 2,
@@ -17,7 +17,7 @@ namespace Utilities
         [DllImport(@"MacrosCstVal.so")]
         private static extern int getSystemCstValues(int id);
 
-        public static int getValue(this ExternalMacrosDefinedConstantsName val)
+        public static int GetValue(this MacrosValues val)
         {
             return getSystemCstValues((int)val);
         }
