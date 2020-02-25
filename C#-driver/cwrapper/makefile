@@ -1,2 +1,2 @@
-CWrapper: CWrapper.c
-	gcc -shared -o CWrapper.so CWrapper.c
+MacrosCstVal: MacrosCstVal.c
+	gcc -shared -o MacrosCstVal.so MacrosCstVal.c
