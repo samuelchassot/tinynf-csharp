@@ -3,6 +3,11 @@
 ## Observations, notes
 - will need to call libc things, especially to perform syscall or to work on the memory directly. C# can't access hw features so need to pass by C. But don't seem to loose advantages of HL languages, even taking that into account as we have them in other places.
 
+## Instructions
+- ```make``` the library in *cwrapper* folder
+- copy the *CWrapper.so* in the same as the executable built by VS
+- run the dotnet executable
+
 ## Useful links
 - https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=5&ved=2ahUKEwivjqn1w9vnAhWV7KYKHeRbDxUQFjAEegQIBhAB&url=https%3A%2F%2Fwww.jungo.com%2Fst%2Fsupport%2Fwindriver-technical-documents%2F&usg=AOvVaw01GNwyUtBJYrtfCVCvEL-z
 
