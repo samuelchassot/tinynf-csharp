@@ -5,7 +5,7 @@ namespace Env.linuxx86
 {
     public class Numa
     {
-        [DllImport("libc")]
+        [DllImport(@"FunctionsWrapper.so")]
         private unsafe static extern int getcpu(uint* cpu, uint* node, void* tcache);
 
         [DllImport(@"FunctionsWrapper.so")]
