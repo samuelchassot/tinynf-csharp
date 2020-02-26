@@ -1,6 +1,7 @@
 Solal_part/
 
 **/.vscode/*
+*.so
 
 # globs
 Makefile.in
