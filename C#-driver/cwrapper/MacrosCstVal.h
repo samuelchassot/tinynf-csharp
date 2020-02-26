@@ -12,7 +12,7 @@ extern "C" {
 #  define MODULE_API
 #endif
 
-MODULE_API void PrintHelloWorld();
+MODULE_API int getSystemCstValues(int id);
 
 #ifdef __cplusplus
 }

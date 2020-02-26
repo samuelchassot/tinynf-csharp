@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/mman.h>
 
 #include <sys/mman.h>
 
@@ -21,7 +22,13 @@ int getSystemCstValues(int id){
             return MAP_HUGETLB;
             break;
         case 5:
-            return ;
+            return MAP_ANONYMOUS;
+            break;
+        case 6:
+            return MAP_SHARED;
+            break;
+        case 7:
+            return MAP_POPULATE;
             break;
     }
 }
