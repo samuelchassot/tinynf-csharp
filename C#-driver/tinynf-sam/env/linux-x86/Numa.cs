@@ -6,7 +6,7 @@ namespace Env.linuxx86
     public class Numa
     {
         [DllImport(@"FunctionsWrapper.so")]
-        private unsafe static extern int getcpu(uint* cpu, uint* node, void* tcache);
+        private unsafe static extern int getcpu(uint* cpu, uint* node);
 
         [DllImport(@"FunctionsWrapper.so")]
         private unsafe static extern long get_mempolicy(int* mode, ulong* nodemask,
@@ -16,7 +16,7 @@ namespace Env.linuxx86
         public unsafe static bool Tn_numa_is_current_node(UInt64 node)
         {
             uint this_node = uint.MaxValue;
-            if(getcpu(null, &this_node, null) != 0)
+            if(getcpu(null, &this_node) != 0)
             {
                 return false;
             }
