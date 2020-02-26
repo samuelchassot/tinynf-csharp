@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 using Utilities;
@@ -7,11 +8,17 @@ namespace Env.linuxx86
 {
     public class Memory
     {
-        private static Logger log = new Logger(Constants.logLevel);
+        private Logger log = new Logger(Constants.logLevel);
+        private List<MemoryMappedFile> allocatedMMF;
 
         private const uint HUGEPAGE_SIZE_POWER = (10 + 10 + 1);
         private const ulong HUGEPAGE_SIZE = 1ul << (int)HUGEPAGE_SIZE_POWER;
         private const uint MAP_HUGE_SHIFT = 26;
+
+        public Memory()
+        {
+            allocatedMMF = new List<MemoryMappedFile>();
+        }
 
         [DllImport("libc")]
         private static extern long sysconf(int name);
@@ -33,10 +40,11 @@ namespace Env.linuxx86
 
         /// <summary>
         /// Allocates memory using MemoryMappedFile.CreateNew(). Returns the pointer of this memory zone, UIntPtr.Zero if allocation failed.
+        /// Memory instance keeps track of MemoryMappedFiles that are allocated to let dispose
         /// </summary>
         /// <param name="size"></param>
         /// <returns>The pointer to the newly allocated zone, or UIntPtr.Zero if allocation failed</returns>
-        public static unsafe UIntPtr Tn_mem_allocate(ulong size)
+        public unsafe UIntPtr Tn_mem_allocate(ulong size)
         {
             if(size > HUGEPAGE_SIZE)
             {
@@ -69,10 +77,30 @@ namespace Env.linuxx86
                         return ptr;
                     }
                 }
+                mappedFile.Dispose();
             }
-            return UIntPtr.Zero;
-            
+            return UIntPtr.Zero
+        }
 
+        /// <summary>
+        /// check in allocated tracked MMF if one of them corresponds to given ptr. If yes, dispose it, else do nothing.
+        /// </summary>
+        /// <param name="ptr">The ptr returned by allocate method of the memory to free</param>
+        public unsafe void Tn_mem_free(UIntPtr ptr)
+        {
+            foreach(MemoryMappedFile mmf in allocatedMMF)
+            {
+                using(var a = mmf.CreateViewAccessor())
+                {
+                    byte* poke = null;
+                    a.SafeMemoryMappedViewHandle.AcquirePointer(ref poke);
+                    if((UIntPtr)poke == ptr)
+                    {
+                        mmf.Dispose();
+                        allocatedMMF.Remove(mmf);
+                    }
+                }
+            }
         }
 
     }
