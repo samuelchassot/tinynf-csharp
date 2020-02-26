@@ -1,23 +1,20 @@
 ﻿using System;
+using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 using Utilities;
 
-namespace env.linuxx86
+namespace Env.linuxx86
 {
     public class Memory
     {
+        private static Logger log = new Logger(Constants.logLevel);
+
         private const uint HUGEPAGE_SIZE_POWER = (10 + 10 + 1);
         private const ulong HUGEPAGE_SIZE = 1ul << (int)HUGEPAGE_SIZE_POWER;
         private const uint MAP_HUGE_SHIFT = 26;
 
         [DllImport("libc")]
         private static extern long sysconf(int name);
-
-        //Chose to represent size_t by UIntPtr, which seems to be the corresponding type but without any guarantees given
-        [DllImport("libc")]
-        private static extern unsafe void* mmap(void* addr, UIntPtr length, int prot, int flags,
-                  int fd, long offset);
-
 
         /// <summary>
         /// Return the page size or 0 in case of an error
@@ -33,14 +30,49 @@ namespace env.linuxx86
             }
             return (UIntPtr)0;
         }
-        
-        public static unsafe bool Tn_mem_allocate(ulong size, UIntPtr out_addr)
+
+        /// <summary>
+        /// Allocates memory using MemoryMappedFile.CreateNew(). Returns the pointer of this memory zone, UIntPtr.Zero if allocation failed.
+        /// </summary>
+        /// <param name="size"></param>
+        /// <returns>The pointer to the newly allocated zone, or UIntPtr.Zero if allocation failed</returns>
+        public static unsafe UIntPtr Tn_mem_allocate(ulong size)
         {
             if(size > HUGEPAGE_SIZE)
             {
-                return false;
+                log.Debug("Tn_mem_allocated: size is bigger than HUGE_PAGESIZE");
+                return UIntPtr.Zero;
             }
-            return true;
+
+            MemoryMappedFile mappedFile;
+            try
+            {
+                //the mapName must be null on non-Windows OS
+                mappedFile = MemoryMappedFile.CreateNew(null, (long)size, MemoryMappedFileAccess.ReadWrite, MemoryMappedFileOptions.None, System.IO.HandleInheritability.None);
+            }
+            catch (Exception)
+            {
+                log.Debug("Tn_mem_allocated: allocation failed");
+                return UIntPtr.Zero;
+            }
+            if (mappedFile != null)
+            {
+                var accessor = mappedFile.CreateViewAccessor();
+                byte* poke = null;
+                accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref poke);
+                UIntPtr ptr = (UIntPtr)poke;
+                UInt64 node;
+                if (Numa.Tn_numa_get_addr_node(ptr, &node))
+                {
+                    if (Numa.Tn_numa_is_current_node(node))
+                    {
+                        return ptr;
+                    }
+                }
+            }
+            return UIntPtr.Zero;
+            
+
         }
 
     }

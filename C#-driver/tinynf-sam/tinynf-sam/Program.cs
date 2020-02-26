@@ -7,14 +7,12 @@ namespace tinynf_sam
 {
     class Program
     {
-
-        [DllImport(@"CWrapper.so")]
-        public static extern void PrintHelloWorld();
-
         unsafe static void Main(string[] args)
         {
-            Console.WriteLine("salut");
-            PrintHelloWorld();
+            Console.WriteLine("Test program:");
+            var ptr = Memory.Tn_mem_allocate(2048ul);
+            Console.WriteLine(ptr);
+            
         }
 
     }

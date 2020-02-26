@@ -5,13 +5,13 @@ namespace Env.linuxx86
 {
     public class Numa
     {
-        [DllImport("libc", SetLastError = true)]
+        [DllImport("libc")]
         private unsafe static extern int getcpu(uint* cpu, uint* node, void* tcache);
 
-        [DllImport("libc", SetLastError = true)]
-        private unsafe static extern int get_mempolicy(int* mode, uint* nodemask,
-                         uint maxnode, void* addr,
-                         uint flags);
+        [DllImport(@"FunctionsWrapper.so")]
+        private unsafe static extern long get_mempolicy(int* mode, ulong* nodemask,
+                         ulong maxnode, void* addr,
+                         ulong flags);
 
         public unsafe static bool Tn_numa_is_current_node(UInt64 node)
         {
@@ -22,7 +22,7 @@ namespace Env.linuxx86
             }
             return this_node == (uint)node;
         }
-        public unsafe static bool Tn_numa_get_addr_node(uint* addr, UInt64* out_node)
+        public unsafe static bool Tn_numa_get_addr_node(UIntPtr addr, UInt64* out_node)
         {
             int node = -1;
             if(get_mempolicy(&node, null, 0, (void*)addr, 1 | 2) == 0)

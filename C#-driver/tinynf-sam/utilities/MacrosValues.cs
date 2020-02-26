@@ -10,6 +10,9 @@ namespace Utilities
         PROT_READ = 2,
         PROT_WRITE = 3,
         MAP_HUGETLB = 4,
+        MAP_ANONYMOUS = 5,
+        MAP_SHARED = 6,
+        MAP_POPULATE = 7
     }
 
     public static class EnumExtensions
