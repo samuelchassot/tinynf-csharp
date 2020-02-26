@@ -17,7 +17,8 @@ extern "C"
                                   unsigned long maxnode, void *addr,
                                   unsigned long flags);
 
-    MODULE_API int getcpu(unsigned *cpu, unsigned *node, struct getcpu_cache *tcache);
+    //I omitted the last argument ( struct getcpu_cache *tcache ) because it is NULL anyway and I do not have the struct definition
+    MODULE_API int getcpu(unsigned *cpu, unsigned *node);
 
 #ifdef __cplusplus
 }

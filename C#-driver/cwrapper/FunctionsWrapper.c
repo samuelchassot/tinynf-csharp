@@ -13,6 +13,6 @@ long get_mempolicy(int *mode, unsigned long *nodemask,
     return syscall(SYS_get_mempolicy, mode, nodemask, maxnode, addr, flags);
 }
 
-int getcpu(unsigned *cpu, unsigned *node, struct getcpu_cache *tcache){
-    return syscall(SYS_getcpu, cpu, node, tcache);
+int getcpu(unsigned *cpu, unsigned *node){
+    return syscall(SYS_getcpu, cpu, node, NULL);
 }
