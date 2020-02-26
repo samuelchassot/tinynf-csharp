@@ -20,6 +20,8 @@
 
 - https://developers.redhat.com/blog/2019/03/25/using-net-pinvoke-for-linux-system-functions/
 
+- https://stackoverflow.com/questions/31179076/how-to-get-an-intptr-to-access-the-view-of-a-memorymappedfile (memorymappedfile and pointer)
+
 ## Working examples
 ### Working example that calls kill to kill a process
 
