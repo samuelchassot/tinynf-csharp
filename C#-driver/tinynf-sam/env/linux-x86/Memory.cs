@@ -39,17 +39,16 @@ namespace Env.linuxx86
         }
 
         /// <summary>
-        /// Allocates memory using MemoryMappedFile.CreateNew(). Returns the pointer of this memory zone, UIntPtr.Zero if allocation failed.
-        /// Memory instance keeps track of MemoryMappedFiles that are allocated to let dispose
+        /// Allocates memory using MemoryMappedFile.CreateNew(). Returns the MappedMemoryFile object, null if allocation failed.
         /// </summary>
         /// <param name="size"></param>
-        /// <returns>The pointer to the newly allocated zone, or UIntPtr.Zero if allocation failed</returns>
-        public unsafe UIntPtr Tn_mem_allocate(ulong size)
+        /// <returns>The MemoryMappedFile object</returns>
+        public unsafe MemoryMappedFile Tn_mem_allocate(ulong size)
         {
             if(size > HUGEPAGE_SIZE)
             {
                 log.Debug("Tn_mem_allocated: size is bigger than HUGE_PAGESIZE");
-                return UIntPtr.Zero;
+                return null;
             }
 
             MemoryMappedFile mappedFile;
@@ -61,7 +60,7 @@ namespace Env.linuxx86
             catch (Exception)
             {
                 log.Debug("Tn_mem_allocated: allocation failed");
-                return UIntPtr.Zero;
+                return null;
             }
             if (mappedFile != null)
             {
@@ -74,32 +73,28 @@ namespace Env.linuxx86
                 {
                     if (Numa.Tn_numa_is_current_node(node))
                     {
-                        return ptr;
+                        accessor.SafeMemoryMappedViewHandle.ReleasePointer();
+                        return mappedFile;
                     }
                 }
-                mappedFile.Dispose();
+                
             }
-            return UIntPtr.Zero
+            return null;
         }
 
         /// <summary>
-        /// check in allocated tracked MMF if one of them corresponds to given ptr. If yes, dispose it, else do nothing.
+        /// Dispose the MemoryMappedFile object's resources
         /// </summary>
-        /// <param name="ptr">The ptr returned by allocate method of the memory to free</param>
-        public unsafe void Tn_mem_free(UIntPtr ptr)
+        /// <param name="mmf">The MemoryMappedFile object to dispose<param>
+        public unsafe void Tn_mem_free(MemoryMappedFile mmf)
         {
-            foreach(MemoryMappedFile mmf in allocatedMMF)
+            try
             {
-                using(var a = mmf.CreateViewAccessor())
-                {
-                    byte* poke = null;
-                    a.SafeMemoryMappedViewHandle.AcquirePointer(ref poke);
-                    if((UIntPtr)poke == ptr)
-                    {
-                        mmf.Dispose();
-                        allocatedMMF.Remove(mmf);
-                    }
-                }
+                mmf.Dispose();
+            }
+            catch (Exception)
+            {
+
             }
         }
 
