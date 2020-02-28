@@ -106,6 +106,8 @@ namespace Env.linuxx86
             
         }
 
+        [DllImport(@"FunctionsWrapper.so")]
+        private static unsafe extern UIntPtr virt_to_phys_mem(UIntPtr addr, ulong size);
         /// <summary>
         /// the way I implemented it won't work until .net core 5.0 release.
         /// It is a known issue: https://github.com/dotnet/runtime/issues/26626
@@ -126,17 +128,28 @@ namespace Env.linuxx86
                 return UIntPtr.Zero;
             }
 
-            //size needs to be cast to long, as CreateFromFile takes a long
-            var mmf = MemoryMappedFile.CreateFromFile("/dev/mem", System.IO.FileMode.Open, null, (long)size, MemoryMappedFileAccess.ReadWrite);
-            if (mmf != null)
+            //THIS is the part that should work after the .net 5.0 update
+            //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+            ////size needs to be cast to long, as CreateFromFile takes a long
+            //var mmf = MemoryMappedFile.CreateFromFile("/dev/mem", System.IO.FileMode.Open, null, (long)size, MemoryMappedFileAccess.ReadWrite);
+            //if (mmf != null)
+            //{
+            //    using (var accessor = mmf.CreateViewAccessor())
+            //    {
+            //        byte* poke = null;
+            //        accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref poke);
+            //        return (UIntPtr)poke;
+            //    }
+            //}
+            //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+            //So we just call same in C
+            var ptr = Memory.virt_to_phys_mem(addr, size);
+            if(ptr != (UIntPtr)((void*)-1))
             {
-                using (var accessor = mmf.CreateViewAccessor())
-                {
-                    byte* poke = null;
-                    accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref poke);
-                    return (UIntPtr)poke;
-                }
+                return ptr;
             }
+            log.Debug("Error while mmap /dev/mem passing through C code, in Tn_mem_phys_to_virt");
             return UIntPtr.Zero;
 
         }
