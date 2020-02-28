@@ -106,6 +106,13 @@ namespace Env.linuxx86
             
         }
 
+        /// <summary>
+        /// the way I implemented it won't work until .net core 5.0 release.
+        /// It is a known issue: https://github.com/dotnet/runtime/issues/26626
+        /// </summary>
+        /// <param name="addr"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
         public unsafe UIntPtr Tn_mem_phys_to_virt(UIntPtr addr, ulong size)
         {
             if(size > SIZE_MAX)
