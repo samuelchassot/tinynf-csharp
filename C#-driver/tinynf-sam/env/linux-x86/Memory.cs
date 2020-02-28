@@ -106,7 +106,7 @@ namespace Env.linuxx86
             
         }
 
-        public UIntPtr Tn_mem_phys_to_virt(UIntPtr addr, ulong size)
+        public unsafe UIntPtr Tn_mem_phys_to_virt(UIntPtr addr, ulong size)
         {
             if(size > SIZE_MAX)
             {
@@ -119,7 +119,19 @@ namespace Env.linuxx86
                 return UIntPtr.Zero;
             }
 
-            var mmf = MemoryMappedFile.CreateFromFile("/dev/mem", System.IO.FileMode.Open, null, size, MemoryMappedFileAccess.ReadWrite);
+            //size needs to be cast to long, as CreateFromFile takes a long
+            var mmf = MemoryMappedFile.CreateFromFile("/dev/mem", System.IO.FileMode.Open, null, (long)size, MemoryMappedFileAccess.ReadWrite);
+            if (mmf != null)
+            {
+                using (var accessor = mmf.CreateViewAccessor())
+                {
+                    byte* poke = null;
+                    accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref poke);
+                    return (UIntPtr)poke;
+                }
+            }
+            return UIntPtr.Zero;
+
         }
 
     }
