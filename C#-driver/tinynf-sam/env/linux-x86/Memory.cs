@@ -56,7 +56,7 @@ namespace Env.linuxx86
             try
             {
                 //the mapName must be null on non-Windows OS
-                mappedFile = MemoryMappedFile.CreateNew(null, (long)size, MemoryMappedFileAccess.ReadWrite, MemoryMappedFileOptions.None, System.IO.HandleInheritability.None);
+                mappedFile = MemoryMappedFile.CreateNew(null, (long)size, MemoryMappedFileAccess.ReadWrite, MemoryMappedFileOptions.None, System.IO.HandleInheritability.Inheritable);
             }
             catch (Exception)
             {
@@ -70,7 +70,7 @@ namespace Env.linuxx86
                 byte* poke = null;
                 accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref poke);
                 UIntPtr ptr = (UIntPtr)poke;
-                UInt64 node;
+                ulong node;
                 if (Numa.Tn_numa_get_addr_node(ptr, &node))
                 {
                     if (Numa.Tn_numa_is_current_node(node))
