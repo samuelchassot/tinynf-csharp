@@ -13,16 +13,16 @@ namespace Env.linuxx86
         /// Reads a single line from the file at the given path into the given line, reading at most line_size characters, or returns false.
         /// The file can have c#-style placeholders ("this is an example of placeholders {0} with another one here {1}"), in which case additional arguments must be passed.
         /// </summary>
-        /// <param name="line_size">the size of the line to read at most</param>
-        /// <param name="path_format">the path of the file to read, can contains fprintf style placeholders</param>
-        /// <param name="path_params">parameters for formatting the path, if it contains placeholders</param>
+        /// <param name="lineSize">the size of the line to read at most</param>
+        /// <param name="pathFormat">the path of the file to read, can contains fprintf style placeholders</param>
+        /// <param name="pathParams">parameters for formatting the path, if it contains placeholders</param>
         /// <returns>the line read in a char array null if error occured</returns>
-        public static char[] Tn_fs_readline(int line_size, string path_format, params string[] path_params)
+        public static char[] TnFsReadline(int lineSize, string pathFormat, params string[] pathParams)
         {
             string path;
             try
             {
-                path = string.Format(path_format, path_params);
+                path = string.Format(pathFormat, pathParams);
             }
             catch (System.Exception ex)
             {
@@ -43,10 +43,10 @@ namespace Env.linuxx86
                 return null;
             }
 
-            char[] buffer = new char[line_size];
+            char[] buffer = new char[lineSize];
             using (StreamReader stream = new StreamReader(file))
             {
-                int res = stream.Read(buffer, 0, line_size);
+                int res = stream.Read(buffer, 0, lineSize);
                 if (res == 0)
                 {
                     CloseFile(file);

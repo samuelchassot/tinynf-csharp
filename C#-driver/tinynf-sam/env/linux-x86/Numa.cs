@@ -13,7 +13,7 @@ namespace Env.linuxx86
                          ulong maxnode, void* addr,
                          ulong flags);
 
-        public unsafe static bool Tn_numa_is_current_node(UInt64 node)
+        public unsafe static bool TnNumaIsCurrentNode(UInt64 node)
         {
             uint this_node = uint.MaxValue;
             if(getcpu(null, &this_node) != 0)
@@ -22,7 +22,7 @@ namespace Env.linuxx86
             }
             return this_node == (uint)node;
         }
-        public unsafe static bool Tn_numa_get_addr_node(UIntPtr addr, UInt64* out_node)
+        public unsafe static bool TnNumaGetAddrNode(UIntPtr addr, UInt64* out_node)
         {
             int node = -1;
             if(get_mempolicy(&node, null, 0, (void*)addr, 1 | 2) == 0)

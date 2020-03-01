@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Runtime.InteropServices;
+
 namespace Env.linuxx86
 {
     public class PCIDevice : IPCIDevice
@@ -8,17 +10,19 @@ namespace Env.linuxx86
         private byte function;
         private byte[] padding; //will be an array of size 5
 
+        [DllImport("libc")]
+        private static extern int ioperm(ulong from, ulong num, int turn_on);
 
         public PCIDevice()
         {
 
         }
-        uint IPCIDevice.tn_pci_read(byte reg)
+        uint IPCIDevice.TnPciRead(byte reg)
         {
             throw new NotImplementedException();
         }
 
-        void IPCIDevice.tn_pci_write(byte reg, uint value)
+        void IPCIDevice.TnPciWrite(byte reg, uint value)
         {
             throw new NotImplementedException();
         }

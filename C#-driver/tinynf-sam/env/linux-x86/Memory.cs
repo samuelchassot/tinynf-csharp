@@ -45,7 +45,7 @@ namespace Env.linuxx86
         /// </summary>
         /// <param name="size"></param>
         /// <returns>The </returns>
-        public unsafe UIntPtr Tn_mem_allocate(ulong size)
+        public unsafe UIntPtr TnMemAllocate(ulong size)
         {
             if(size > HUGEPAGE_SIZE)
             {
@@ -72,9 +72,9 @@ namespace Env.linuxx86
                 accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref poke);
                 UIntPtr ptr = (UIntPtr)poke;
                 ulong node;
-                if (Numa.Tn_numa_get_addr_node(ptr, &node))
+                if (Numa.TnNumaGetAddrNode(ptr, &node))
                 {
-                    if (Numa.Tn_numa_is_current_node(node))
+                    if (Numa.TnNumaIsCurrentNode(node))
                     {
                         allocatedMMF[ptr] = mappedFile;
                         return ptr;
@@ -89,7 +89,7 @@ namespace Env.linuxx86
         /// Dispose the MemoryMappedFile object's resources
         /// </summary>
         /// <param name="ptr"><param>
-        public void Tn_mem_free(UIntPtr ptr)
+        public void TnMemFree(UIntPtr ptr)
         {
             var mmf = allocatedMMF[ptr];
             if(mmf != null)
@@ -116,7 +116,7 @@ namespace Env.linuxx86
         /// <param name="addr"></param>
         /// <param name="size"></param>
         /// <returns></returns>
-        public unsafe UIntPtr Tn_mem_phys_to_virt(UIntPtr addr, ulong size)
+        public unsafe UIntPtr TnMePhysToVirt(UIntPtr addr, ulong size)
         {
             if(size > SIZE_MAX)
             {
@@ -155,7 +155,7 @@ namespace Env.linuxx86
 
         }
 
-        public unsafe UIntPtr Tn_mem_virt_to_phys(UIntPtr addr)
+        public unsafe UIntPtr TnMemVirtToPhys(UIntPtr addr)
         {
             UIntPtr pageSize = GetPageSize();
             if(pageSize == (UIntPtr)0)
