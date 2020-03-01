@@ -45,7 +45,11 @@ uintptr_t virt_to_phys_mem(uintptr_t addr, unsigned long size){
     return (uintptr_t) mapped;
 }
 
-//need to define it like that because it is defined as macros so cannot be called directly from C#
+//need to define them like that because they are defined as macros so cannot be called directly from C#
 int outlCustom(unsigned int value, unsigned short int port){
     return outl(value, port);
+}
+
+int outbCustom(unsigned char value, unsigned short int port){
+    return outb(value, port);
 }
