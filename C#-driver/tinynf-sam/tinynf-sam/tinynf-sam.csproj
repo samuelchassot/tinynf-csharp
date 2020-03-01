@@ -16,4 +16,7 @@
     <ProjectReference Include="..\env\env.csproj" />
     <ProjectReference Include="..\utilities\utilities.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="82599\" />
+  </ItemGroup>
 </Project>
