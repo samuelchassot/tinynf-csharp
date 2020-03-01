@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <sys/io.h>
 
 //Most of the functions here are just wrapped because they cannot be called from C# directly
 
@@ -42,4 +43,9 @@ uintptr_t virt_to_phys_mem(uintptr_t addr, unsigned long size){
 	);
     //and checks will be performed in C#
     return (uintptr_t) mapped;
+}
+
+//need to define it like that because it is defined as macros so cannot be called directly from C#
+int outlCustom(unsigned int value, unsigned short int port){
+    return outl(value, port);
 }
