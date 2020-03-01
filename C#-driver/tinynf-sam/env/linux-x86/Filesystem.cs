@@ -10,7 +10,7 @@ namespace Env.linuxx86
     {
         private static Logger log = new Logger(Constants.logLevel);
         /// <summary>
-        /// Reads a single line from the file at the given path into the given line, reading at most line_size characters, or returns false.
+        /// Reads a single line from the file at the given path into the given line, reading at most line_size characters.
         /// The file can have c#-style placeholders ("this is an example of placeholders {0} with another one here {1}"), in which case additional arguments must be passed.
         /// </summary>
         /// <param name="lineSize">the size of the line to read at most</param>
