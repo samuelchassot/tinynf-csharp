@@ -10,14 +10,12 @@ namespace tinynf_sam
         unsafe static void Main(string[] args)
         {
             Console.WriteLine("Test program:");
-            var mem = new Memory();
-            var ptr = mem.TnMemAllocate(2048ul);
-            Console.WriteLine(ptr);
-            var ptrvirt = mem.TnMePhysToVirt((UIntPtr)(1ul << 32), 5);
-            Console.WriteLine(ptrvirt);
-            Console.WriteLine(ptr);
-            
+
+            uint a = BitNSet(1, 5);
+            Console.WriteLine(Convert.ToString(a, 2));            
         }
 
+        
     }
+
 }
