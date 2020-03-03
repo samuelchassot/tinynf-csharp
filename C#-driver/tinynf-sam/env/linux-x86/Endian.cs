@@ -3,12 +3,12 @@ namespace Env.linuxx86
 {
     public static class Endian
     {
-        public static uint tn_cpu_to_le(uint val)
+        public static uint CpuToLe(uint val)
         {
             return val;
         }
 
-        public static uint tn_le_to_cpu(uint val)
+        public static uint LeToCpu(uint val)
         {
             return val;
         }
