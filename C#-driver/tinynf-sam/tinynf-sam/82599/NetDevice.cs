@@ -17,7 +17,9 @@ namespace tinynf_sam
         public UIntPtr Addr { get { return addr; } }
         public bool Reset()
         {
-            return false;
+            // "Prior to issuing software reset, the driver needs to execute the master disable algorithm as defined in Section 5.2.5.3.2."
+            // Section 5.2.5.3.2 Master Disable:
+            // "The device driver disables any reception to the Rx queues as described in Section 4.6.7.1"
         }
     }
 }

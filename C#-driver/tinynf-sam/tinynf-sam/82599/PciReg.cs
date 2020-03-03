@@ -98,12 +98,12 @@ namespace tinynf_sam
 
         public static uint Read(this PciReg reg, IPCIDevice pciDevice)
         {
-            return pciDevice.PPciRead(reg.GetAddr());
+            return pciDevice.PciRead(reg.GetAddr());
         }
 
         public static void Set(this PciReg reg, IPCIDevice pciDevice, PciRegField field)
         {
-            pciDevice.PPciWrite(reg.GetAddr(), reg.Read(pciDevice) | field.GetValue());
+            pciDevice.PciWrite(reg.GetAddr(), reg.Read(pciDevice) | field.GetValue());
         }
 
         public static bool Cleared(this PciReg reg, IPCIDevice pciDevice, PciRegField field)

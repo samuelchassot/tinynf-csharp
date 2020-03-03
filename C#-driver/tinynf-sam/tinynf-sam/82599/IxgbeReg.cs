@@ -424,7 +424,7 @@ namespace tinynf_sam
             return val;
         }
 
-        public static void Write(this IxgbeReg reg, UIntPtr addr, IxgbeRegField field = IxgbeRegField.NONE, int idx = -1, uint value)
+        public static void Write(this IxgbeReg reg, UIntPtr addr, uint value, IxgbeRegField field = IxgbeRegField.NONE, int idx = -1)
         {
             uint valueToWrite = value;
             if(field != IxgbeRegField.NONE)
