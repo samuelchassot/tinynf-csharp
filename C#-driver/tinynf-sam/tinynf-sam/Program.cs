@@ -10,9 +10,7 @@ namespace tinynf_sam
         unsafe static void Main(string[] args)
         {
             Console.WriteLine("Test program:");
-
-            uint a = BitNSet(1, 5);
-            Console.WriteLine(Convert.ToString(a, 2));            
+           
         }
 
         

@@ -124,7 +124,7 @@ namespace tinynf_sam
         // Section 8.2.3.7.1 Filter Control Register (FCTRL)
         public const uint IXGBE_REG_FCTRL = 0x05080u;
         public static readonly uint IXGBE_REG_FCTRL_MPE = BitNSet(8);
-public static readonly uint IXGBE_REG_FCTRL_UPE = BitNSet(9);
+        public static readonly uint IXGBE_REG_FCTRL_UPE = BitNSet(9);
 
         // Section 8.2.3.7.19 Five tuple Queue Filter
         public static uint IXGBE_REG_FTQF(int n) => (uint)(0x0E600u + (4u * n));
@@ -132,19 +132,19 @@ public static readonly uint IXGBE_REG_FCTRL_UPE = BitNSet(9);
 
         // Section 8.2.3.4.10 Firmware Semaphore Register
         public const uint IXGBE_REG_FWSM = 0x10148u;
-public static readonly uint IXGBE_REG_FWSM_EXT_ERR_IND = BitNSet(19, 24);
+        public static readonly uint IXGBE_REG_FWSM_EXT_ERR_IND = BitNSet(19, 24);
 
         // Section 8.2.3.4.12 PCIe Control Extended Register
         public const uint IXGBE_REG_GCREXT = 0x11050u;
-public static readonly uint IXGBE_REG_GCREXT_BUFFERS_CLEAR_FUNC = BitNSet(30);
+        public static readonly uint IXGBE_REG_GCREXT_BUFFERS_CLEAR_FUNC = BitNSet(30);
 
         // Section 8.2.3.22.8 MAC Core Control 0 Register
         public const uint IXGBE_REG_HLREG0 = 0x04240u;
-public static readonly uint IXGBE_REG_HLREG0_LPBK = BitNSet(15);
+        public static readonly uint IXGBE_REG_HLREG0_LPBK = BitNSet(15);
 
         // Section 8.2.3.22.34 MAC Flow Control Register
         public const uint IXGBE_REG_MFLCN = 0x04294u;
-public static readonly uint IXGBE_REG_MFLCN_RFCE = BitNSet(3);
+        public static readonly uint IXGBE_REG_MFLCN_RFCE = BitNSet(3);
 
         // Section 8.2.3.7.10 MAC Pool Select Array
         public static uint IXGBE_REG_MPSAR(int n) => (uint)(0x0A600u + (4u * n));
@@ -173,9 +173,9 @@ public static readonly uint IXGBE_REG_MFLCN_RFCE = BitNSet(3);
         // Section 8.2.3.8.8 Receive DMA Control Register
         // INTERPRETATION-MISSING: Bit 0, which is not mentioned in the table, is reserved
         public const uint IXGBE_REG_RDRXCTL = 0x02F00u;
-public static readonly uint IXGBE_REG_RDRXCTL_CRC_STRIP = BitNSet(1);
+        public static readonly uint IXGBE_REG_RDRXCTL_CRC_STRIP = BitNSet(1);
         public static readonly uint IXGBE_REG_RDRXCTL_DMAIDONE = BitNSet(3);
-        public static readonly uint IXGBE_REG_RDRXCTL_RSCFRSTSIZE = BitNSet(17,24);
+        public static readonly uint IXGBE_REG_RDRXCTL_RSCFRSTSIZE = BitNSet(17, 24);
         public static readonly uint IXGBE_REG_RDRXCTL_RSCACKC = BitNSet(25);
         public static readonly uint IXGBE_REG_RDRXCTL_FCOE_WRFIX = BitNSet(26);
 
@@ -184,11 +184,11 @@ public static readonly uint IXGBE_REG_RDRXCTL_CRC_STRIP = BitNSet(1);
 
         // Section 8.2.3.10.2 DCB Transmit Descriptor Plane Control and Status
         public const uint IXGBE_REG_RTTDCS = 0x04900u;
-public static readonly uint IXGBE_REG_RTTDCS_ARBDIS = BitNSet(6);
+        public static readonly uint IXGBE_REG_RTTDCS_ARBDIS = BitNSet(6);
 
         // Section 8.2.3.8.10 Receive Control Register
         public const uint IXGBE_REG_RXCTRL = 0x03000u;
-public static readonly uint IXGBE_REG_RXCTRL_RXEN = BitNSet(0);
+        public static readonly uint IXGBE_REG_RXCTRL_RXEN = BitNSet(0);
 
         // Section 8.2.3.8.6 Receive Descriptor Control
         public static uint IXGBE_REG_RXDCTL(int n) => (uint)(n <= 63u ? (0x01028u + 0x40u * n) : (0x0D028u + 0x40u * (n - 64u)));
@@ -199,20 +199,20 @@ public static readonly uint IXGBE_REG_RXCTRL_RXEN = BitNSet(0);
 
         // Section 8.2.3.12.5 Security Rx Control
         public const uint IXGBE_REG_SECRXCTRL = 0x08D00u;
-public static readonly uint IXGBE_REG_SECRXCTRL_RX_DIS = BitNSet(1);
+        public static readonly uint IXGBE_REG_SECRXCTRL_RX_DIS = BitNSet(1);
 
         // Section 8.2.3.12.6 Security Rx Status
         public const uint IXGBE_REG_SECRXSTAT = 0x08D04u;
-public static readonly uint IXGBE_REG_SECRXSTAT_SECRX_RDY = BitNSet(0);
+        public static readonly uint IXGBE_REG_SECRXSTAT_SECRX_RDY = BitNSet(0);
 
         // Section 8.2.3.8.7 Split Receive Control Registers
         public static uint IXGBE_REG_SRRCTL(int n) => (uint)(n <= 63u ? (0x01014u + (0x40u * n)) : (0x0D014u + (0x40u * (n - 64u))));
-public static readonly uint IXGBE_REG_SRRCTL_BSIZEPACKET = BitNSet(0, 4);
+        public static readonly uint IXGBE_REG_SRRCTL_BSIZEPACKET = BitNSet(0, 4);
         public static readonly uint IXGBE_REG_SRRCTL_DROP_EN = BitNSet(28);
 
         // Section 8.2.3.1.2 Device Status Register
         public const uint IXGBE_REG_STATUS = 0x00008u;
-public static readonly uint IXGBE_REG_STATUS_PCIE_MASTER_ENABLE_STATUS = BitNSet(19);
+        public static readonly uint IXGBE_REG_STATUS_PCIE_MASTER_ENABLE_STATUS = BitNSet(19);
 
         // Section 8.2.3.9.6 Transmit Descriptor Base Address High
         public static uint IXGBE_REG_TDBAH(int n) => (uint)(0x06004u + (0x40u * n));
@@ -221,21 +221,21 @@ public static readonly uint IXGBE_REG_STATUS_PCIE_MASTER_ENABLE_STATUS = BitNSet
         public static uint IXGBE_REG_TDBAL(int n) => (uint)(0x06000u + (0x40u * n));
 
         // Section 8.2.3.9.7 Transmit Descriptor Length
-        public static  uint IXGBE_REG_TDLEN(int n) => (uint)(0x06008u + (0x40u * n));
+        public static uint IXGBE_REG_TDLEN(int n) => (uint)(0x06008u + (0x40u * n));
 
         // Section 8.2.3.9.9 Transmit Descriptor Tail
-        public static  uint IXGBE_REG_TDT(int n) => (uint)(0x06018u + (0x40u * n));
+        public static uint IXGBE_REG_TDT(int n) => (uint)(0x06018u + (0x40u * n));
 
         // Section 8.2.3.9.11 Tx Descriptor Completion Write Back Address High
-        public static  uint IXGBE_REG_TDWBAH(int n) => (uint)(0x0603Cu + (0x40u * n));
+        public static uint IXGBE_REG_TDWBAH(int n) => (uint)(0x0603Cu + (0x40u * n));
 
         // Section 8.2.3.9.11 Tx Descriptor Completion Write Back Address Low
-        public static  uint IXGBE_REG_TDWBAL(int n) => (uint)(0x06038u + (0x40u * n));
+        public static uint IXGBE_REG_TDWBAL(int n) => (uint)(0x06038u + (0x40u * n));
 
         // Section 8.2.3.9.10 Transmit Descriptor Control
         public static uint IXGBE_REG_TXDCTL(int n) => (uint)(0x06028u + (0x40u * n));
-public static readonly uint IXGBE_REG_TXDCTL_PTHRESH = BitNSet(0, 6);
-        public static readonly uint IXGBE_REG_TXDCTL_HTHRESH = BitNSet(8,14);
+        public static readonly uint IXGBE_REG_TXDCTL_PTHRESH = BitNSet(0, 6);
+        public static readonly uint IXGBE_REG_TXDCTL_HTHRESH = BitNSet(8, 14);
         public static readonly uint IXGBE_REG_TXDCTL_ENABLE = BitNSet(25);
 
         // Section 8.2.3.9.13 Transmit Packet Buffer Size
@@ -243,8 +243,45 @@ public static readonly uint IXGBE_REG_TXDCTL_PTHRESH = BitNSet(0, 6);
 
         // Section 8.2.3.9.16 Tx Packet Buffer Threshold
         public static uint IXGBE_REG_TXPBTHRESH(int n) => (uint)(0x04950u + (4u * n));
-public static readonly uint IXGBE_REG_TXPBTHRESH_THRESH = BitNSet(0, 9);
+        public static readonly uint IXGBE_REG_TXPBTHRESH_THRESH = BitNSet(0, 9);
 
+        // ----------
+        // Parameters
+        // ----------
+
+        public const uint IXGBE_PACKET_BUFFER_SIZE = 2 * 1024u;
+
+
+        //equivalent of static assert:
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "used as static assert")]
+        const uint PACKET_BUFFER_SIZE_must_be_smaller_than_BUFFER_SIZE_MAX = IXGBE_PACKET_BUFFER_SIZE < IXGBE_PACKET_BUFFER_SIZE_MAX ? 0 : -1;
+
+        // Section 7.2.3.3 Transmit Descriptor Ring:
+        // "Transmit Descriptor Length register (TDLEN 0-127) - This register determines the number of bytes allocated to the circular buffer. This value must be 0 modulo 128."
+        public const uint IXGBE_RING_SIZE = 1024u;
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "used as static assert")]
+        const uint RING_SIZE_must_be_0_mod_128 = IXGBE_RING_SIZE % 128 == 0 ? 0 : -1;
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "used as static assert")]
+        const uint RING_SIZE_must_be_power_of_2 = (IXGBE_RING_SIZE & (IXGBE_RING_SIZE - 1)) == 0 ? 0 : -1;
+
+        // Maximum number of transmit queues assigned to an agent.
+        public const uint IXGBE_AGENT_OUTPUTS_MAX = 4u;
+
+        // Updating period for the transmit tail
+        public const int IXGBE_AGENT_PROCESS_PERIOD = 8;
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "used as static assert")]
+        const uint PROCESS_PERIOD_must_be_greater_or_equal_than_1 = IXGBE_AGENT_PROCESS_PERIOD >= 1 ? 0 : -1;
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "used as static assert")]
+        const uint PROCESS_PERIOD_must_be_smaller_than_RING_SIZE = IXGBE_AGENT_PROCESS_PERIOD < IXGBE_RING_SIZE ? 0 : -1;
+
+        // Updating period for receiving transmit head updates from the hardware and writing new values of the receive tail based on it.
+        public const int IXGBE_AGENT_TRANSMIT_PERIOD = 64;
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "used as static assert")]
+        const uint TRANSMIT_PERIOD_must_be_greater_or_equal_than_1 = IXGBE_AGENT_TRANSMIT_PERIOD >= 1 ? 0 : -1;
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "used as static assert")]
+        const uint TRANSMIT_PERIOD_must_be_smaller_than_RING_SIZE = IXGBE_AGENT_TRANSMIT_PERIOD < IXGBE_RING_SIZE ? 0 : -1;
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "used as static assert")]
+        const uint TRANSMIT_PERIOD_must_be_power_of_2 = (IXGBE_AGENT_TRANSMIT_PERIOD & (IXGBE_AGENT_TRANSMIT_PERIOD - 1)) == 0 ? 0 : -1;
 
         public static uint BitNSet(int n)
         {
