@@ -132,32 +132,7 @@ namespace tinynf_sam
         TXPBSIZE,
 
         // Section 8.2.3.9.16 Tx Packet Buffer Threshold
-        TXPBTHRESH,
-
-        //-------------------
-        // PCI Registers
-        //-------------------
-
-        // Section 9.3.2 PCIe Configuration Space Summary: "0x10 Base Address Register 0" (32 bit), "0x14 Base Address Register 1" (32 bit)
-        PCI_BAR0_LOW,
-        PCI_BAR0_HIGH,
-
-        // Section 9.3.3.3 Command Register (16 bit)
-        // Section 9.3.3.4 Status Register (16 bit, unused)
-        PCI_COMMAND,
-
-        // Section 9.3.10.6 Device Status Register (16 bit)
-        // Section 9.3.10.7 Link Capabilities Register (16 bit, unused)
-        PCI_DEVICESTATUS,
-
-        // Section 9.3.3.1 Vendor ID Register (16 bit)
-        // Section 9.3.3.2 Device ID Register (16 bit)
-        PCI_ID,
-
-        // Section 9.3.7.1.4 Power Management Control / Status Register (16 bit)
-        // Section 9.3.7.1.5 PMCSR_BSE Bridge Support Extensions Register (8 bit, hardwired to 0)
-        // Section 9.3.7.1.6 Data Register (8 bit, unused)
-        PCI_PMCSR,
+        TXPBTHRESH
     }
 
     public enum IxgbeRegField
@@ -249,26 +224,6 @@ namespace tinynf_sam
         // Section 8.2.3.9.16 Tx Packet Buffer Threshold
         TXPBTHRESH_THRESH,
 
-        //-------------------
-        // PCI Registers
-        //-------------------
-
-        // Section 9.3.3.3 Command Register (16 bit)
-        // Section 9.3.3.4 Status Register (16 bit, unused)
-        PCI_COMMAND_MEMORY_ACCESS_ENABLE,
-        PCI_COMMAND_BUS_MASTER_ENABLE,
-        PCI_COMMAND_INTERRUPT_DISABLE,
-
-        // Section 9.3.10.6 Device Status Register (16 bit)
-        // Section 9.3.10.7 Link Capabilities Register (16 bit, unused)
-        PCI_DEVICESTATUS_TRANSACTIONPENDING,
-
-        // Section 9.3.7.1.4 Power Management Control / Status Register (16 bit)
-        // Section 9.3.7.1.5 PMCSR_BSE Bridge Support Extensions Register (8 bit, hardwired to 0)
-        // Section 9.3.7.1.6 Data Register (8 bit, unused)
-        PCI_PMCSR_POWER_STATE,
-
-
         // Used for Read/Write methods
         NONE
     }
@@ -277,6 +232,7 @@ namespace tinynf_sam
     {
         private static readonly Logger log = new Logger(Constants.logLevel);
 
+        // I chose to call the C version because couldn't find a satisfying alternative and I wanted to keep the performance
         [DllImport(@"FunctionsWrapper.so")]
         private static extern int numberOfTrailingZeros(ulong n);
 
@@ -378,29 +334,6 @@ namespace tinynf_sam
                 // Section 8.2.3.9.16 Tx Packet Buffer Threshold
                 IxgbeReg.TXPBTHRESH => (uint)(0x04950u + (4u * n)),
 
-
-                //-------------------
-                // PCI Registers
-                //-------------------
-
-
-                // Section 9.3.2 PCIe Configuration Space Summary: "0x10 Base Address Register 0" (32 bit), "0x14 Base Address Register 1" (32 bit)
-                IxgbeReg.PCI_BAR0_LOW => 0x10u,
-                IxgbeReg.PCI_BAR0_HIGH => 0x14u,
-                // Section 9.3.3.3 Command Register (16 bit)
-                // Section 9.3.3.4 Status Register (16 bit, unused)
-                IxgbeReg.PCI_COMMAND => (ushort)0x04u,
-                // Section 9.3.10.6 Device Status Register (16 bit)
-                // Section 9.3.10.7 Link Capabilities Register (16 bit, unused)
-                IxgbeReg.PCI_DEVICESTATUS => (ushort)0xAAu,
-                // Section 9.3.3.1 Vendor ID Register (16 bit)
-                // Section 9.3.3.2 Device ID Register (16 bit)
-                IxgbeReg.PCI_ID => (ushort)0x00u,
-                // Section 9.3.7.1.4 Power Management Control / Status Register (16 bit)
-                // Section 9.3.7.1.5 PMCSR_BSE Bridge Support Extensions Register (8 bit, hardwired to 0)
-                // Section 9.3.7.1.6 Data Register (8 bit, unused)
-                IxgbeReg.PCI_PMCSR => (ushort)0x44u,
-
                 _ => uint.MaxValue,
             };
         }
@@ -473,25 +406,6 @@ namespace tinynf_sam
                 // Section 8.2.3.9.16 Tx Packet Buffer Threshold
                 IxgbeRegField.TXPBTHRESH_THRESH => IxgbeConstants.BitNSet(0, 9),
 
-
-                //-------------------
-                // PCI Registers
-                //-------------------
-
-
-                // Section 9.3.3.3 Command Register (16 bit)
-                // Section 9.3.3.4 Status Register (16 bit, unused)
-                IxgbeRegField.PCI_COMMAND_MEMORY_ACCESS_ENABLE => (ushort)IxgbeConstants.BitNSet(1),
-                IxgbeRegField.PCI_COMMAND_BUS_MASTER_ENABLE => (ushort)IxgbeConstants.BitNSet(2),
-                IxgbeRegField.PCI_COMMAND_INTERRUPT_DISABLE => (ushort)IxgbeConstants.BitNSet(10),
-                // Section 9.3.10.6 Device Status Register (16 bit)
-                // Section 9.3.10.7 Link Capabilities Register (16 bit, unused)
-                IxgbeRegField.PCI_DEVICESTATUS_TRANSACTIONPENDING => (ushort)IxgbeConstants.BitNSet(5),
-                // Section 9.3.7.1.4 Power Management Control / Status Register (16 bit)
-                // Section 9.3.7.1.5 PMCSR_BSE Bridge Support Extensions Register (8 bit, hardwired to 0)
-                // Section 9.3.7.1.6 Data Register (8 bit, unused)
-                IxgbeRegField.PCI_PMCSR_POWER_STATE => IxgbeConstants.BitNSet(0, 1),
-
                 _ => uint.MaxValue,
             };
 
@@ -519,6 +433,21 @@ namespace tinynf_sam
                 valueToWrite = (Read(reg, addr, field, idx) & ~fieldValue) | ((value << numberOfTrailingZeros(fieldValue)) & fieldValue);
             }
             WriteReg(addr, reg.GetAddr(), valueToWrite);
+        }
+
+        public static void Clear(this IxgbeReg reg, UIntPtr addr, IxgbeRegField field = IxgbeRegField.NONE, int idx = -1)
+        {
+            uint valueToWrite = 0u;
+            if (field != IxgbeRegField.NONE)
+            {
+                valueToWrite = Read(reg, addr, IxgbeRegField.NONE, idx) & ~field.GetValue();
+            }
+            WriteReg(addr, reg.GetAddr(), valueToWrite);
+        }
+
+        public static bool Cleared(this IxgbeReg reg, UIntPtr addr, IxgbeRegField field = IxgbeRegField.NONE, int idx = -1)
+        {
+            return reg.Read(addr, field, idx) == 0u;
         }
 
         public static unsafe uint ReadReg(UIntPtr addr, uint reg)

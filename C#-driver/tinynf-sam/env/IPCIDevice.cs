@@ -8,13 +8,13 @@ namespace Env
         /// </summary>
         /// <param name="reg">the register to read</param>
         /// <returns>the value contained in the register</returns>
-        public uint TnPciRead(byte reg);
+        public uint  PPciRead(byte reg);
 
         /// <summary>
         /// write the given value to the given register in the current pci device
         /// </summary>
         /// <param name="reg">the register to write to</param>
         /// <param name="value">the value to write</param>
-        public void TnPciWrite(byte reg, uint value);
+        public void  PPciWrite(byte reg, uint value);
     }
 }

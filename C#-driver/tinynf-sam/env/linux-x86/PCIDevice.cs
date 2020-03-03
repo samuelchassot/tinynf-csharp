@@ -86,7 +86,7 @@ namespace Env.linuxx86
 
         }
 
-        uint IPCIDevice.TnPciRead(byte reg)
+        uint IPCIDevice.PciRead(byte reg)
         {
             if (GetIoportAccess())
             {
@@ -105,7 +105,7 @@ namespace Env.linuxx86
             return 0xFFFFFFFFu; // same as reading unknown reg
         }
 
-        void IPCIDevice.TnPciWrite(byte reg, uint value)
+        void IPCIDevice.PciWrite(byte reg, uint value)
         {
             if (GetIoportAccess())
             {
