@@ -15,8 +15,11 @@ namespace tinynf_sam
         {
             
         }
+        public UIntPtr Addr { get { return addr; } private set => addr = value; }
 
-        public NetDevice CreateInstance(Memory memory, PCIDevice pciDevice)
+        public PCIDevice PciDevice { get => pciDevice; }
+
+        public static NetDevice CreateInstance(Memory memory, PCIDevice pciDevice)
         {
             // The NIC supports 64-bit addresses, so pointers can't be larger
             if (UIntPtr.Size > sizeof(ulong))
@@ -440,9 +443,39 @@ namespace tinynf_sam
 
         }
 
-        public UIntPtr Addr { get { return addr; } private set => addr = value; }
+        /// <summary>
+        /// ----------------------------
+        /// Section 7.1.1.1 L2 Filtering
+        /// ----------------------------
+        /// </summary>
+        /// <returns></returns>
+        public bool SetPromiscuous()
+        {
+            // "A packet passes successfully through L2 Ethernet MAC address filtering if any of the following conditions are met:"
+            // 	Section 8.2.3.7.1 Filter Control Register:
+            // 	"Before receive filters are updated/modified the RXCTRL.RXEN bit should be set to 0b.
+            // 	After the proper filters have been set the RXCTRL.RXEN bit can be set to 1b to re-enable the receiver."
+            bool WasRxEnabled = !IxgbeReg.RXCTRL.Cleared(addr, IxgbeRegField.RXCTRL_RXEN);
 
-        public PCIDevice PciDevice { get => pciDevice; }
+            if (WasRxEnabled)
+            {
+                IxgbeReg.RXCTRL.Clear(addr, IxgbeRegField.RXCTRL_RXEN);
+            }
+            // "Unicast packet filtering — Promiscuous unicast filtering is enabled (FCTRL.UPE=1b) or the packet passes unicast MAC filters (host or manageability)."
+            IxgbeReg.FCTRL.Set(addr, IxgbeRegField.FCTRL_UPE);
+            // "Multicast packet filtering — Promiscuous multicast filtering is enabled by either the host or manageability (FCTRL.MPE=1b or MANC.MCST_PASS_L2 =1b) or the packet matches one of the multicast filters."
+            IxgbeReg.FCTRL.Set(addr, IxgbeRegField.FCTRL_MPE);
+            // "Broadcast packet filtering to host — Promiscuous multicast filtering is enabled (FCTRL.MPE=1b) or Broadcast Accept Mode is enabled (FCTRL.BAM = 1b)."
+            // Nothing to do here, since we just enabled MPE
+
+            if (WasRxEnabled)
+            {
+                IxgbeReg.RXCTRL.Set(addr, IxgbeRegField.RXCTRL_RXEN);
+            }
+
+            // This function cannot fail (for now?)
+            return true;
+        }
 
         /// <summary>
         /// --------------------------------
