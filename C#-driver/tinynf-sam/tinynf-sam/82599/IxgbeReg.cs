@@ -450,6 +450,11 @@ namespace tinynf_sam
             return reg.Read(addr, field, idx) == 0u;
         }
 
+        public static void Set(this IxgbeReg reg, UIntPtr addr, IxgbeRegField field, int idx = -1)
+        {
+            reg.Write(addr, field.GetValue() | reg.Read(addr, idx: idx), idx: idx);
+        }
+
         public static unsafe uint ReadReg(UIntPtr addr, uint reg)
         {
             uint valLe = *((uint*)((ulong)addr + (ulong)reg));
