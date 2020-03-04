@@ -10,6 +10,7 @@ namespace tinynf_sam
 
         private NetDevice device;
         private readonly Logger log = new Logger(Constants.logLevel);
+        private Memory memory;
         public Ixgbe()
         {
         }

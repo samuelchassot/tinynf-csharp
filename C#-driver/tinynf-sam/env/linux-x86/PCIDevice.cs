@@ -14,6 +14,10 @@ namespace Env.linuxx86
         private byte function;
         private byte[] padding; //will be an array of size 5
 
+        public byte Bus { get => bus; }
+        public byte Device { get => device; }
+        public byte Function { get => function; }
+
         [DllImport("libc")]
         private static extern int ioperm(ulong from, ulong num, int turn_on);
 
