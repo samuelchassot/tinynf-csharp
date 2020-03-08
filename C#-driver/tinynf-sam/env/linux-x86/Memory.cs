@@ -167,10 +167,10 @@ namespace Env.linuxx86
             UIntPtr nPage = (UIntPtr)((ulong)addr / (ulong)pageSize);
             UIntPtr offset = (UIntPtr)((ulong)nPage * (ulong)addr);
 
-            //use int to represent offset
-            if(offset != (UIntPtr)(int)offset)
+            //use long to represent offset
+            if(offset != (UIntPtr)((long)offset))
             {
-                log.Debug("the offset is to big to be represented as int, Tn_mem_virt_to_phys");
+                log.Debug("the offset is to big to be represented as long, Tn_mem_virt_to_phys");
                 return UIntPtr.Zero;
             }
             int required = sizeof(ulong);
@@ -180,7 +180,7 @@ namespace Env.linuxx86
             {
                 using (BinaryReader b = new BinaryReader(File.Open("/proc/self/pagemap", FileMode.Open)))
                 {
-                    int pos = (int)offset;
+                    long pos = (long)offset;
                     int count = 0;
 
                     b.BaseStream.Seek(pos, SeekOrigin.Begin);
