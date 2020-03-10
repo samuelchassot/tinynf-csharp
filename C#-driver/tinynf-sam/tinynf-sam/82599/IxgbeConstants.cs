@@ -101,5 +101,25 @@ namespace tinynf_sam
             return (uint.MaxValue << (end + 1)) ^ (uint.MaxValue << start);
 
         }
+
+        public static ulong BitNSetLong(int n)
+        {
+            if (n > 63)
+            {
+                return 0ul;
+            }
+            return 1ul << n;
+
+        }
+
+        public static ulong BitNSetLong(int start, int end)
+        {
+            if (end >= 63 || start < 0 || start > 63)
+            {
+                return 0ul;
+            }
+            return (ulong.MaxValue << (end + 1)) ^ (ulong.MaxValue << start);
+
+        }
     }
 }

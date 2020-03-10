@@ -41,6 +41,7 @@ namespace tinynf_sam
             padding = new byte[3 * 8];
             transmitTailAddrs = new UIntPtr[(int)IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX];
             rings = new UIntPtr[IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX];
+            processedDelimiter = 0;
 
             transmitHeadsPtr = mem.TnMemAllocate(IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX * TRANSMIT_HEAD_MULTIPLIER * 4);
             if(transmitHeadsPtr == UIntPtr.Zero)
@@ -324,6 +325,39 @@ namespace tinynf_sam
             return true;
         }
 
+        public (bool ok, int packetLength, UIntPtr packetAddr) Receive()
+        {
+            // Since descriptors are 16 bytes, the index must be doubled
+            ulong* mainMetadataAddr = (ulong*)(UIntPtr)((ulong)rings[0] + 2u * processedDelimiter + 1);
+            ulong receiveMetadata = *mainMetadataAddr;
+            // Section 7.1.5 Legacy Receive Descriptor Format:
+            // "Status Field (8-bit offset 32, 2nd line)": Bit 0 = DD, "Descriptor Done."
+
+            if ((receiveMetadata & IxgbeConstants.BitNSetLong(32) ) == 0)
+            {
+                // No packet; flush if we need to, i.e., 2nd part of the processor
+                // Done here since we must eventually flush after processing a packet even if no more packets are received
+                if(flushedProcessedDelimiter != ulong.MaxValue && flushedProcessedDelimiter != processedDelimiter)
+                {
+                    for(ulong n = 0; n < IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX; n++)
+                    {
+                        IxgbeRegExtension.WriteRegRaw(transmitTailAddrs[n], (uint)processedDelimiter);
+                    }
+                }
+                // Record that there was no packet
+                
+                flushedProcessedDelimiter = ulong.MaxValue;
+                return (false, -1, (UIntPtr)0);
+            }
+
+            // This cannot overflow because the packet is by definition in an allocated block of memory
+            byte* outPacketAddr = (byte*)buffer + IxgbeConstants.IXGBE_PACKET_BUFFER_SIZE * processedDelimiter;
+            // "Length Field (16-bit offset 0, 2nd line): The length indicated in this field covers the data written to a receive buffer."
+            int outPacketLength = (int)(receiveMetadata & 0xFFu);
+
+            // Note that the out_ parameters have no meaning if this is false, but it's fine, their value will still make sense
+            return (true, outPacketLength, (UIntPtr)outPacketAddr);
+        }
     }
 
     public class MemoryAllocationErrorException : Exception
