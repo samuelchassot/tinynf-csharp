@@ -43,7 +43,7 @@ namespace Env.linuxx86
         /// <summary>
         /// Allocates memory using MemoryMappedFile.CreateNew().
         /// </summary>
-        /// <param name="size"></param>
+        /// <param name="size"> in bytes</param>
         /// <returns>The </returns>
         public unsafe UIntPtr TnMemAllocate(ulong size)
         {

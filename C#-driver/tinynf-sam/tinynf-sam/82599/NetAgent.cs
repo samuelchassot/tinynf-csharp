@@ -7,12 +7,13 @@ namespace tinynf_sam
     public unsafe class NetAgent
     {
         private const uint RING_ADDRESS_should_be_128_byte_aligned = IxgbeConstants.IXGBE_RING_SIZE * 16 >= 128 ? 0 : -1;
+        private const byte TransmitQueuesFitInUint8 = byte.MaxValue >= IxgbeConstants.IXGBE_TRANSMIT_QUEUES_COUNT ? 0 : -1;
 
 
         private UIntPtr buffer;
         private UIntPtr receiveTailAddr;
-        private ulong processed_delimiter;
-        private ulong outputs_count;
+        private ulong processedDelimiter;
+        private ulong outputsCount;
         private ulong flushedProcessedDelimiter; // -1 if there was no packet last time, otherwise last flushed processed_delimiter
         private byte[] padding;
         // transmit heads must be 16-byte aligned; see alignment remarks in transmit queue setup
@@ -21,7 +22,9 @@ namespace tinynf_sam
         // thus, using assumption CACHE, we multiply indices by 16
         public const uint TRANSMIT_HEAD_MULTIPLIER = 16;
 
-        private uint[] transmitHeads; // size = IXGBE_AGENT_OUTPUTS_MAX * TRANSMIT_HEAD_MULTIPLIER
+        //transmitHeadsPtr here is the ptr pointing at the beginning of an allocated part of the memory of the size
+        // IXGBE_AGENT_OUTPUTS_MAX * TRANSMIT_HEAD_MULTIPLIER
+        private UIntPtr transmitHeadsPtr; // size = IXGBE_AGENT_OUTPUTS_MAX * TRANSMIT_HEAD_MULTIPLIER
         private volatile UIntPtr[] rings; // 0 == shared receive/transmit, rest are exclusive transmit, size = IXGBE_AGENT_OUTPUTS_MAX
         private UIntPtr[] transmitTailAddrs;
 
@@ -36,9 +39,16 @@ namespace tinynf_sam
         {
             receiveTailAddr = UIntPtr.Zero;
             padding = new byte[3 * 8];
-            transmitHeads = new uint[(int)IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX * (int)TRANSMIT_HEAD_MULTIPLIER];
             transmitTailAddrs = new UIntPtr[(int)IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX];
             rings = new UIntPtr[IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX];
+
+            transmitHeadsPtr = mem.TnMemAllocate(IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX * TRANSMIT_HEAD_MULTIPLIER * 4);
+            if(transmitHeadsPtr == UIntPtr.Zero)
+            {
+                log.Debug("Cannot allocate memory for the transmitHeads");
+                throw new MemoryAllocationErrorException();
+            }
+
 
             UIntPtr buffPtr = mem.TnMemAllocate(IxgbeConstants.IXGBE_RING_SIZE * IxgbeConstants.IXGBE_PACKET_BUFFER_SIZE);
             if (buffPtr == UIntPtr.Zero)
@@ -74,8 +84,8 @@ namespace tinynf_sam
 
         public UIntPtr Buffer { get => buffer; private set => buffer = value; }
         public UIntPtr Receive_tail_addr { get => receiveTailAddr; private set => receiveTailAddr = value; }
-        public ulong Processed_delimiter { get => processed_delimiter; private set => processed_delimiter = value; }
-        public ulong Outputs_count { get => outputs_count; private set => outputs_count = value; }
+        public ulong Processed_delimiter { get => processedDelimiter; private set => processedDelimiter = value; }
+        public ulong Outputs_count { get => outputsCount; private set => outputsCount = value; }
         public ulong Flushed_processed_delimiter { get => flushedProcessedDelimiter; private set => flushedProcessedDelimiter = value; }
         public byte[] Padding { get => padding; private set => padding = value; }
 
@@ -178,6 +188,142 @@ namespace tinynf_sam
             this.receiveTailAddr = (UIntPtr)((ulong)device.Addr + IxgbeReg.RDT.Read(device.Addr, idx: queueIndex));
             return true;
         }
+
+        public bool AddOutput(Memory mem, NetDevice device, ulong longQueueIndex)
+        {
+            ulong outputsCountLocalVar = 0;
+            for(; outputsCountLocalVar < IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX; outputsCountLocalVar++)
+            {
+                if(this.transmitTailAddrs[outputsCountLocalVar] == UIntPtr.Zero)
+                {
+                    break;
+                }
+            }
+
+            if (outputsCountLocalVar == IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX)
+            {
+                log.Debug("The agent is already using the maximum amount of transmit queues");
+                return false;
+            }
+            if (longQueueIndex >= IxgbeConstants.IXGBE_TRANSMIT_QUEUES_COUNT)
+            {
+                log.Debug("Transmit queue does not exist");
+                return false;
+            }
+
+            //This code assumes transmit queues fit in an Uint8, see private const def above for assert like
+            byte queueIndex = (byte)longQueueIndex;
+
+            // See later for details of TXDCTL.ENABLE
+            if(!IxgbeReg.TXDCTL.Cleared(device.Addr, IxgbeRegField.TXDCTL_ENABLE, queueIndex))
+            {
+                log.Debug("Transmit queue is already in use");
+                return false;
+            }
+
+            // "The following steps should be done once per transmit queue:"
+            // "- Allocate a region of memory for the transmit descriptor list."
+            // This is already done in agent initialization as agent->rings[*]
+            ulong* ring = (ulong*)this.rings[outputsCount]; // was volatile in C code but in C#, cannot make pointer to volatile value
+
+            // Program all descriptors' buffer address now
+            // n was a uintptr_t in C, I use ulong to be sure
+            for (ulong n = 0; n < IxgbeConstants.IXGBE_RING_SIZE; n++)
+            {
+                // Section 7.2.3.2.2 Legacy Transmit Descriptor Format:
+                // "Buffer Address (64)", 1st line offset 0
+                UIntPtr packet = (UIntPtr)((ulong)buffer + n * IxgbeConstants.IXGBE_PACKET_BUFFER_SIZE);
+                UIntPtr packetPhysAddr = mem.TnMemVirtToPhys(packet);
+                if(packetPhysAddr == UIntPtr.Zero)
+                {
+                    log.Debug("Could not get a packet's physical address");
+                }
+
+                //ring[n * 2u] = packetPhysAddr; IN C CODE
+                *(ring + n * 2u) = (ulong)packetPhysAddr;
+            }
+
+            // "- Program the descriptor base address with the address of the region (TDBAL, TDBAH)."
+            // 	Section 8.2.3.9.5 Transmit Descriptor Base Address Low (TDBAL[n]):
+            // 	"The Transmit Descriptor Base Address must point to a 128 byte-aligned block of data."
+            // This alignment is guaranteed by the agent initialization
+            UIntPtr ringPhysAddr = mem.TnMemVirtToPhys((UIntPtr)ring);
+            if(ringPhysAddr == UIntPtr.Zero)
+            {
+                log.Debug("Could not get a transmit ring's physical address");
+                return false;
+            }
+
+            IxgbeReg.TDBAH.Write(device.Addr, (uint)((ulong)ringPhysAddr >> 32), idx: queueIndex);
+            IxgbeReg.TDBAL.Write(device.Addr, (uint)((ulong)ringPhysAddr & 0xFFFFFFFFu));
+
+
+            // "- Set the length register to the size of the descriptor ring (TDLEN)."
+            // 	Section 8.2.3.9.7 Transmit Descriptor Length (TDLEN[n]):
+            // 	"This register sets the number of bytes allocated for descriptors in the circular descriptor buffer."
+            // Note that each descriptor is 16 bytes.
+            IxgbeReg.TDLEN.Write(device.Addr, IxgbeConstants.IXGBE_RING_SIZE * 16u, idx: queueIndex);
+            // "- Program the TXDCTL register with the desired TX descriptor write back policy (see Section 8.2.3.9.10 for recommended values)."
+            //	Section 8.2.3.9.10 Transmit Descriptor Control (TXDCTL[n]):
+            //	"HTHRESH should be given a non-zero value each time PTHRESH is used."
+            //	"For PTHRESH and HTHRESH recommended setting please refer to Section 7.2.3.4."
+            // INTERPRETATION-MISSING: The "recommended values" are in 7.2.3.4.1 very vague; we use (cache line size)/(descriptor size) for HTHRESH (i.e. 64/16 by assumption CACHE),
+            //                         and a completely arbitrary value for PTHRESH
+            // PERFORMANCE: This is required to forward 10G traffic on a single NIC.
+            IxgbeReg.TXDCTL.Write(device.Addr, 60, IxgbeRegField.TXDCTL_PTHRESH, idx: queueIndex);
+            IxgbeReg.TXDCTL.Write(device.Addr, 4, IxgbeRegField.TXDCTL_HTHRESH, idx: queueIndex);
+            // "- If needed, set TDWBAL/TWDBAH to enable head write back."
+
+            //SAM SPECIFIC
+            // here in C : !tn_mem_virt_to_phys((uintptr_t) & (agent->transmit_heads[outputs_count * TRANSMIT_HEAD_MULTIPLIER]), &head_phys_addr)
+            // so we need transmitHeadsPtr + outputsCount*TRANSMIT_HEAD_MULTIPLIER*4 (*4 because it is an uint32_t array in C)
+            UIntPtr headPhysAddr = mem.TnMemVirtToPhys((UIntPtr)((ulong)transmitHeadsPtr + outputsCount*TRANSMIT_HEAD_MULTIPLIER*4));
+            if (headPhysAddr == UIntPtr.Zero)
+            {
+                log.Debug("Could not get the physical address of the transmit head");
+                return false;
+            }
+            //	Section 7.2.3.5.2 Tx Head Pointer Write Back:
+            //	"The low register's LSB hold the control bits.
+            // 	 * The Head_WB_EN bit enables activation of tail write back. In this case, no descriptor write back is executed.
+            // 	 * The 30 upper bits of this register hold the lowest 32 bits of the head write-back address, assuming that the two last bits are zero."
+            //	"software should [...] make sure the TDBAL value is Dword-aligned."
+            //	Section 8.2.3.9.11 Tx Descriptor completion Write Back Address Low (TDWBAL[n]): "the actual address is Qword aligned"
+            // INTERPRETATION-CONTRADICTION: There is an obvious contradiction here; qword-aligned seems like a safe option since it will also be dword-aligned.
+            // INTERPRETATION-INCORRECT: Empirically, the answer is... 16 bytes. Write-back has no effect otherwise. So both versions are wrong.
+            if ((ulong)headPhysAddr % 16u != 0)
+            {
+                log.Debug("Transmit head's physical address is not aligned properly");
+                return false;
+            }
+            //	Section 8.2.3.9.11 Tx Descriptor Completion Write Back Address Low (TDWBAL[n]):
+            //	"Head_WB_En, bit 0 [...] 1b = Head write-back is enabled."
+            //	"Reserved, bit 1"
+            IxgbeReg.TDWBAH.Write(device.Addr, (uint)((ulong)headPhysAddr >> 32), idx: queueIndex);
+            IxgbeReg.TDWBAL.Write(device.Addr, (uint)(((ulong)headPhysAddr & 0xFFFFFFFFu) | 1), idx: queueIndex);
+            // INTERPRETATION-MISSING: We must disable relaxed ordering of head pointer write-back, since it could cause the head pointer to be updated backwards
+            IxgbeReg.DCATXCTRL.Clear(device.Addr, IxgbeRegField.DCATXCTRL_TX_DESC_WB_RO_EN, idx: queueIndex);
+            // "- Enable transmit path by setting DMATXCTL.TE.
+            //    This step should be executed only for the first enabled transmit queue and does not need to be repeated for any following queues."
+            // Do it every time, it makes the code simpler.
+            IxgbeReg.DMATXCTL.Set(device.Addr, IxgbeRegField.DMATXCTL_TE);
+            // "- Enable the queue using TXDCTL.ENABLE.
+            //    Poll the TXDCTL register until the Enable bit is set."
+            // INTERPRETATION-MISSING: No timeout is mentioned here, let's say 1s to be safe.
+            IxgbeReg.TXDCTL.Set(device.Addr, IxgbeRegField.TXDCTL_ENABLE, queueIndex);
+
+            if(Ixgbe.TimeoutCondition(1000*1000, IxgbeReg.TXDCTL.Cleared(device.Addr, IxgbeRegField.TXDCTL_ENABLE, queueIndex)))
+            {
+                log.Debug("TXDCTL.ENABLE did not set, cannot enable queue");
+                return false;
+            }
+            // "Note: The tail register of the queue (TDT) should not be bumped until the queue is enabled."
+            // Nothing to transmit yet, so leave TDT alone.
+            transmitTailAddrs[outputsCount] = (UIntPtr)((ulong)device.Addr + IxgbeReg.TDT.Read(device.Addr, idx: queueIndex));
+            outputsCount += 1;
+            return true;
+        }
+
     }
 
     public class MemoryAllocationErrorException : Exception
