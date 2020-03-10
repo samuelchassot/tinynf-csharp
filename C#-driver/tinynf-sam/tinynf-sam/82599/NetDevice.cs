@@ -142,7 +142,7 @@ namespace tinynf_sam
             // "- Wait for EEPROM auto read completion."
             // INTERPRETATION-MISSING: This refers to Section 8.2.3.2.1 EEPROM/Flash Control Register (EEC), Bit 9 "EEPROM Auto-Read Done"
             // INTERPRETATION-MISSING: No timeout is mentioned, so we use 1s.
-            if(Ixgbe.TimeoutCondition(1000*1000, IxgbeReg.EEC.Cleared(newDevice.Addr, IxgbeRegField.EEC_AUTO_RD)){
+            if(Ixgbe.TimeoutCondition(1000*1000, IxgbeReg.EEC.Cleared(newDevice.Addr, IxgbeRegField.EEC_AUTO_RD))){
                 log.Debug("EEPROM auto read timed out");
                 return null;
             }
