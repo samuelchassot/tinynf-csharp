@@ -90,7 +90,7 @@ namespace tinynf_sam
             ushort queueIndex = 0;
 
             // See later for details of RXDCTL.ENABLE
-            if(IxgbeReg.RXDCTL.Cleared(device.Addr,IxgbeRegField.RXDCTL_ENABLE, queueIndex))
+            if (IxgbeReg.RXDCTL.Cleared(device.Addr, IxgbeRegField.RXDCTL_ENABLE, queueIndex))
             {
                 log.Debug("Receive queue is already in use");
                 return false;
@@ -109,7 +109,7 @@ namespace tinynf_sam
             // 	"The receive descriptor base address must point to a 128 byte-aligned block of data."
             // This alignment is guaranteed by the agent initialization
             UIntPtr ringPhysAddr = mem.TnMemVirtToPhys(this.rings[0]);
-            if(ringPhysAddr == UIntPtr.Zero)
+            if (ringPhysAddr == UIntPtr.Zero)
             {
                 log.Debug("Could not get phys addr of main ring");
                 return false;
@@ -120,7 +120,7 @@ namespace tinynf_sam
             // Section 8.2.3.8.3 Receive DEscriptor Length (RDLEN[n]):
             // "This register sets the number of bytes allocated for descriptors in the circular descriptor buffer."
             // Note that receive descriptors are 16 bytes.
-            IxgbeReg.RDLEN.Write(device.Addr, IxgbeConstants.IXGBE_RING_SIZE * 16u, idx: queueIndex); 
+            IxgbeReg.RDLEN.Write(device.Addr, IxgbeConstants.IXGBE_RING_SIZE * 16u, idx: queueIndex);
             // "- Program SRRCTL associated with this queue according to the size of the buffers and the required header control."
             //	Section 8.2.3.8.7 Split Receive Control Registers (SRRCTL[n]):
             //		"BSIZEPACKET, Receive Buffer Size for Packet Buffer. The value is in 1 KB resolution. Value can be from 1 KB to 16 KB."
@@ -140,7 +140,7 @@ namespace tinynf_sam
             IxgbeReg.RXDCTL.Set(device.Addr, IxgbeRegField.RXDCTL_ENABLE, queueIndex);
             // "- Poll the RXDCTL register until the Enable bit is set. The tail should not be bumped before this bit was read as 1b."
             // INTERPRETATION-MISSING: No timeout is mentioned here, let's say 1s to be safe.
-            if(Ixgbe.TimeoutCondition(1000*1000, IxgbeReg.RXDCTL.Cleared(device.Addr, IxgbeRegField.RXDCTL_ENABLE, queueIndex)))
+            if (Ixgbe.TimeoutCondition(1000 * 1000, IxgbeReg.RXDCTL.Cleared(device.Addr, IxgbeRegField.RXDCTL_ENABLE, queueIndex)))
             {
                 log.Debug("RXDCTL.ENABLE did not set, cannot enable queue");
                 return false;
@@ -155,7 +155,7 @@ namespace tinynf_sam
             IxgbeReg.SECRXCTRL.Set(device.Addr, IxgbeRegField.SECRXCTRL_RX_DIS);
             //	"- Wait for the data paths to be emptied by HW. Poll the SECRXSTAT.SECRX_RDY bit until it is asserted by HW."
             // INTERPRETATION-MISSING: Another undefined timeout, assuming 1s as usual
-            if(Ixgbe.TimeoutCondition(1000*1000, IxgbeReg.SECRXSTAT.Cleared(device.Addr, IxgbeRegField.SECRXSTAT_SECRX_RDY)))
+            if (Ixgbe.TimeoutCondition(1000 * 1000, IxgbeReg.SECRXSTAT.Cleared(device.Addr, IxgbeRegField.SECRXSTAT_SECRX_RDY)))
             {
                 log.Debug("SECRXSTAT.SECRXRDY timed out, cannot enable queue");
                 return false;
@@ -178,6 +178,7 @@ namespace tinynf_sam
             this.receiveTailAddr = (UIntPtr)((ulong)device.Addr + IxgbeReg.RDT.Read(device.Addr, idx: queueIndex));
             return true;
         }
+    }
 
     public class MemoryAllocationErrorException : Exception
     {
