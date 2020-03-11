@@ -437,6 +437,23 @@ namespace tinynf_sam
                 IxgbeRegExtension.WriteRegRaw(receiveTailAddr, (earliestTransmitHead - -) & (IxgbeConstants.IXGBE_RING_SIZE - 1));
             }
         }
+
+        // --------------
+        // High-level API
+        // --------------
+        public void Process(Func<int, UIntPtr, int> packetHandler)
+        {
+            (bool ok, int packetLength, UIntPtr packetPtr) = this.Receive();
+            if (!ok)
+            {
+                return;
+            }
+
+            bool[] outputs = new bool[IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX];
+            int newpacketLength = packetHandler(packetLength, packetPtr);
+            Transmit(newpacketLength, outputs);
+        }
+
     }
 
     public class MemoryAllocationErrorException : Exception
