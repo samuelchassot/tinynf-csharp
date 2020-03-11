@@ -13,7 +13,7 @@ namespace tinynf_sam
         private static Memory mem = new Memory();
 
         /// <summary>
-        /// PCI addresses format: Bus:Device:Function
+        /// PCI addresses format: Bus:Device.Function
         /// </summary>
         /// <param name="args"></param>
         unsafe static int Main(string[] args)
@@ -25,7 +25,7 @@ namespace tinynf_sam
                 log.Info("Not two arguments passed, Failed");
                 return 1;
             }
-            //Parses PCI addresses in Bus:Device:Function format
+            //Parses PCI addresses in Bus:Device.Function format
             for (int i = 0; i < 2; ++i)
             {
                 PCIDevice dev = parsePciDevice(args[i]);
@@ -97,15 +97,19 @@ namespace tinynf_sam
         private static PCIDevice parsePciDevice(string addr)
         {
             string[] args = addr.Split(":");
+            string busString = args[0];
+            string[] deviceFuncstring = args[1].Split(".");
+            string deviceString = deviceFuncstring[0];
+            string functionString = deviceFuncstring[1];
             byte bus;
             byte device;
             byte function;
 
             try
             {
-                bus = byte.Parse(args[0], style: System.Globalization.NumberStyles.HexNumber);
-                device = byte.Parse(args[0], style: System.Globalization.NumberStyles.HexNumber);
-                function = byte.Parse(args[0], style: System.Globalization.NumberStyles.HexNumber);
+                bus = byte.Parse(busString, style: System.Globalization.NumberStyles.HexNumber);
+                device = byte.Parse(deviceString, style: System.Globalization.NumberStyles.HexNumber);
+                function = byte.Parse(functionString, style: System.Globalization.NumberStyles.HexNumber);
             }
             catch (Exception ex)
             {
