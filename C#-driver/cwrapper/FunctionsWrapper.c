@@ -46,14 +46,18 @@ uintptr_t virt_to_phys_mem(uintptr_t addr, unsigned long size){
 }
 
 //need to define them like that because they are defined as macros so cannot be called directly from C#
-unsigned void outlCustom(unsigned int value, unsigned short int port){
+void outlCustom(unsigned int value, unsigned short int port){
     outl(value, port);
 }
 
-unsigned void outbCustom(unsigned char value, unsigned short int port){
+void outbCustom(unsigned char value, unsigned short int port){
     outb(value, port);
 }
 
 unsigned int inlCustom(unsigned short int port){
     return inl(port);
+}
+
+int numberOfTrailingZeros(unsigned long n){
+    return __builtin_ctzll(n);
 }
