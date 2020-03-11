@@ -43,7 +43,7 @@ namespace Env.linuxx86
         /// <summary>
         /// Allocates memory using MemoryMappedFile.CreateNew().
         /// </summary>
-        /// <param name="size"></param>
+        /// <param name="size"> in bytes</param>
         /// <returns>The </returns>
         public unsafe UIntPtr TnMemAllocate(ulong size)
         {
@@ -110,8 +110,8 @@ namespace Env.linuxx86
         [DllImport(@"FunctionsWrapper.so")]
         private static unsafe extern UIntPtr virt_to_phys_mem(UIntPtr addr, ulong size);
         /// <summary>
-        /// the way I implemented it won't work until .net core 5.0 release.
-        /// It is a known issue: https://github.com/dotnet/runtime/issues/26626
+        /// Returns the virtual address corresponding to the given physical address
+        /// returns UIntPtr.zero if it failed
         /// </summary>
         /// <param name="addr"></param>
         /// <param name="size"></param>
@@ -129,7 +129,10 @@ namespace Env.linuxx86
                 return UIntPtr.Zero;
             }
 
+
             //THIS is the part that should work after the .net 5.0 update
+            /// the way I implemented it won't work until .net core 5.0 release.
+            /// It is a known issue: https://github.com/dotnet/runtime/issues/26626
             //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             ////size needs to be cast to long, as CreateFromFile takes a long
             //var mmf = MemoryMappedFile.CreateFromFile("/dev/mem", System.IO.FileMode.Open, null, (long)size, MemoryMappedFileAccess.ReadWrite);
