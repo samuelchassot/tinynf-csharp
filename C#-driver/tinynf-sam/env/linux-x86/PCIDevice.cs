@@ -18,10 +18,10 @@ namespace Env.linuxx86
         private static extern int ioperm(ulong from, ulong num, int turn_on);
 
         [DllImport(@"FunctionsWrapper.so")]
-        private static extern uint outlCustom(uint value, ushort port);
+        private static extern void outlCustom(uint value, ushort port);
 
         [DllImport(@"FunctionsWrapper.so")]
-        private static extern uint outbCustom(byte value, ushort port);
+        private static extern void outbCustom(byte value, ushort port);
 
         [DllImport(@"FunctionsWrapper.so")]
         private static extern uint inlCustom(ushort port);
