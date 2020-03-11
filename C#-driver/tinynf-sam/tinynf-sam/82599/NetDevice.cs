@@ -142,7 +142,7 @@ namespace tinynf_sam
             // "- Wait for EEPROM auto read completion."
             // INTERPRETATION-MISSING: This refers to Section 8.2.3.2.1 EEPROM/Flash Control Register (EEC), Bit 9 "EEPROM Auto-Read Done"
             // INTERPRETATION-MISSING: No timeout is mentioned, so we use 1s.
-            if(Ixgbe.TimeoutCondition(1000*1000, IxgbeReg.EEC.Cleared(newDevice.Addr, IxgbeRegField.EEC_AUTO_RD))){
+            if(IxgbeConstants.TimeoutCondition(1000*1000, IxgbeReg.EEC.Cleared(newDevice.Addr, IxgbeRegField.EEC_AUTO_RD))){
                 log.Debug("EEPROM auto read timed out");
                 return null;
             }
@@ -157,7 +157,7 @@ namespace tinynf_sam
 
             // "- Wait for DMA initialization done (RDRXCTL.DMAIDONE)."
             // INTERPRETATION-MISSING: Once again, no timeout mentioned, so we use 1s
-            if(Ixgbe.TimeoutCondition(1000*1000, IxgbeReg.RDRXCTL.Cleared(newDevice.Addr, IxgbeRegField.RDRXCTL_DMAIDONE)))
+            if(IxgbeConstants.TimeoutCondition(1000*1000, IxgbeReg.RDRXCTL.Cleared(newDevice.Addr, IxgbeRegField.RDRXCTL_DMAIDONE)))
             {
                 log.Debug("DMA init timed out");
                 return null;
@@ -497,7 +497,7 @@ namespace tinynf_sam
                 // "The 82599 clears the RXDCTL.ENABLE bit only after all pending memory accesses to the descriptor ring are done.
                 //  The driver should poll this bit before releasing the memory allocated to this queue."
                 // INTERPRETATION-MISSING: There is no mention of what to do if the 82599 never clears the bit; 1s seems like a decent timeout
-                if (Ixgbe.TimeoutCondition(1000 * 1000, !IxgbeReg.RXDCTL.Cleared(addr, IxgbeRegField.RXDCTL_ENABLE, queue)))
+                if (IxgbeConstants.TimeoutCondition(1000 * 1000, !IxgbeReg.RXDCTL.Cleared(addr, IxgbeRegField.RXDCTL_ENABLE, queue)))
                 {
                     log.Debug("RXDCTL.ENABLE did not clear, cannot disable receive");
                     return false;
@@ -514,7 +514,7 @@ namespace tinynf_sam
             //  Once the bit is cleared, it is guaranteed that no requests are pending from this function."
             // INTERPRETATION-MISSING: The next sentence refers to "a given time"; let's say 1 second should be plenty...
             // "The driver might time out if the PCIe Master Enable Status bit is not cleared within a given time."
-            if(Ixgbe.TimeoutCondition(1000*1000, !IxgbeReg.STATUS.Cleared(addr, IxgbeRegField.STATUS_PCIE_MASTER_ENABLE_STATUS)))
+            if(IxgbeConstants.TimeoutCondition(1000*1000, !IxgbeReg.STATUS.Cleared(addr, IxgbeRegField.STATUS_PCIE_MASTER_ENABLE_STATUS)))
             {
                 // "In these cases, the driver should check that the Transaction Pending bit (bit 5) in the Device Status register in the PCI config space is clear before proceeding.
                 //  In such cases the driver might need to initiate two consecutive software resets with a larger delay than 1 us between the two of them."
