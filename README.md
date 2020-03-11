@@ -4,6 +4,8 @@
 - will need to call libc things, especially to perform syscall or to work on the memory directly. C# can't access hw features so need to pass by C. But don't seem to loose advantages of HL languages, even taking that into account as we have them in other places.
 
 - instead of using mmap in C, I will use *MemoryMappedFile* from .NET (https://docs.microsoft.com/en-us/dotnet/api/system.io.memorymappedfiles.memorymappedfile?view=netframework-4.8#remarks). With the method *CreateNew*, it can create a region in memory without mapping to a file, useful for interprocess communication. Exactly what I need.
+
+- I need to allocate memory using MemoryMappedFile for the *transmitHeads* even if not the case in the C code, because using field doesn't ensure fixed position in memory.
 ## Instructions
 - ```make``` the library in *cwrapper* folder
 - copy the *CWrapper.so* in the same as the executable built by VS

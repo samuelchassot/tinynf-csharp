@@ -14,6 +14,10 @@ namespace Env.linuxx86
         private byte function;
         private byte[] padding; //will be an array of size 5
 
+        public byte Bus { get => bus; }
+        public byte Device { get => device; }
+        public byte Function { get => function; }
+
         [DllImport("libc")]
         private static extern int ioperm(ulong from, ulong num, int turn_on);
 
@@ -25,10 +29,12 @@ namespace Env.linuxx86
 
         [DllImport(@"FunctionsWrapper.so")]
         private static extern uint inlCustom(ushort port);
-
-        public PCIDevice()
+        
+        public PCIDevice(byte bus, byte device, byte function)
         {
-
+            this.bus = bus;
+            this.device = device;
+            this.function = function;
         }
 
         public static bool GetIoportAccess()
@@ -86,7 +92,7 @@ namespace Env.linuxx86
 
         }
 
-        uint IPCIDevice.TnPciRead(byte reg)
+        uint IPCIDevice.PciRead(byte reg)
         {
             if (GetIoportAccess())
             {
@@ -105,7 +111,7 @@ namespace Env.linuxx86
             return 0xFFFFFFFFu; // same as reading unknown reg
         }
 
-        void IPCIDevice.TnPciWrite(byte reg, uint value)
+        void IPCIDevice.PciWrite(byte reg, uint value)
         {
             if (GetIoportAccess())
             {

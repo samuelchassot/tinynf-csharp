@@ -19,7 +19,7 @@ namespace Utilities
             if (level >= 3)
             {
                 Console.SetOut(Console.Error);
-                Console.WriteLine("VERBOSE");
+                Console.Write("VERBOSE ");
                 Console.WriteLine(msg);
                 Console.Error.Flush();
                 Console.SetOut(Console.Out);
@@ -31,7 +31,7 @@ namespace Utilities
             if (level >= 2)
             {
                 Console.SetOut(Console.Error);
-                Console.WriteLine("DEBUG");
+                Console.Write("DEBUG ");
                 Console.WriteLine(msg);
                 Console.Error.Flush();
                 Console.SetOut(Console.Out);
@@ -43,7 +43,7 @@ namespace Utilities
             if (level >= 1)
             {
                 Console.SetOut(Console.Error);
-                Console.WriteLine("INFO");
+                Console.Write("INFO ");
                 Console.WriteLine(msg);
                 Console.Error.Flush();
                 Console.SetOut(Console.Out);

@@ -57,3 +57,7 @@ unsigned void outbCustom(unsigned char value, unsigned short int port){
 unsigned int inlCustom(unsigned short int port){
     return inl(port);
 }
+
+int numberOfTrailingZeros(unsigned long n){
+    return __builtin_ctzll(n)
+}
