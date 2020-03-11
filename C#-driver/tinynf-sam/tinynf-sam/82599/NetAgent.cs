@@ -441,7 +441,7 @@ namespace tinynf_sam
         // --------------
         // High-level API
         // --------------
-        public void Process(Func<int, UIntPtr, int> packetHandler)
+        public void Process(Func<int, UIntPtr, bool[], int> packetHandler)
         {
             (bool ok, int packetLength, UIntPtr packetPtr) = this.Receive();
             if (!ok)
@@ -450,7 +450,7 @@ namespace tinynf_sam
             }
 
             bool[] outputs = new bool[IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX];
-            int newpacketLength = packetHandler(packetLength, packetPtr);
+            int newpacketLength = packetHandler(packetLength, packetPtr, outputs);
             Transmit(newpacketLength, outputs);
         }
 

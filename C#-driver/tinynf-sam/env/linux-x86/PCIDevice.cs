@@ -29,10 +29,12 @@ namespace Env.linuxx86
 
         [DllImport(@"FunctionsWrapper.so")]
         private static extern uint inlCustom(ushort port);
-
-        public PCIDevice()
+        
+        public PCIDevice(byte bus, byte device, byte function)
         {
-
+            this.bus = bus;
+            this.device = device;
+            this.function = function;
         }
 
         public static bool GetIoportAccess()
