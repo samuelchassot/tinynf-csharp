@@ -108,6 +108,7 @@ namespace Env.linuxx86
                     log.Debug("PCIRead : Can get DeviceNode");
                     if (Numa.TnNumaIsCurrentNode(deviceNode))
                     {
+                        log.Debug("PCIRead : device is on the same node");
                         PciAddress(reg);
                         uint result = inlCustom(PCI_CONFIG_DATA);
                         log.Verbose(string.Format("Read PCI : from reg {0} = {1}", reg, result));
@@ -115,7 +116,6 @@ namespace Env.linuxx86
                     }
                 }
             }
-            log.Debug("PCIRead : cannot get IoPort access");
             return 0xFFFFFFFFu; // same as reading unknown reg
         }
 
