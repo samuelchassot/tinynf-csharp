@@ -96,9 +96,11 @@ namespace Env.linuxx86
         {
             if (GetIoportAccess())
             {
+                log.Debug("PCIRead : IoPort Access is granted");
                 ulong deviceNode = GetDeviceNode();
                 if (deviceNode != ulong.MaxValue)
                 {
+                    log.Debug("PCIRead : Can get DeviceNode");
                     if (Numa.TnNumaIsCurrentNode(deviceNode))
                     {
                         PciAddress(reg);
