@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using Env;
+using Env.linuxx86;
 
 namespace tinynf_sam
 {
@@ -96,17 +97,17 @@ namespace tinynf_sam
             };
         }
 
-        public static uint Read(this PciReg reg, IPCIDevice pciDevice)
+        public static uint Read(this PciReg reg, PCIDevice pciDevice)
         {
             return pciDevice.PciRead(reg.GetAddr());
         }
 
-        public static void Set(this PciReg reg, IPCIDevice pciDevice, PciRegField field)
+        public static void Set(this PciReg reg, PCIDevice pciDevice, PciRegField field)
         {
             pciDevice.PciWrite(reg.GetAddr(), reg.Read(pciDevice) | field.GetValue());
         }
 
-        public static bool Cleared(this PciReg reg, IPCIDevice pciDevice, PciRegField field)
+        public static bool Cleared(this PciReg reg, PCIDevice pciDevice, PciRegField field)
         {
             return (reg.Read(pciDevice) & field.GetValue()) == 0u;
         }
