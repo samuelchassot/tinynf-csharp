@@ -11,7 +11,7 @@ namespace tinynf_sam
         private PCIDevice pciDevice;
         private static readonly Logger log = new Logger(Constants.logLevel);
 
-        private NetDevice(IPCIDevice pciDevice)
+        private NetDevice(PCIDevice pciDevice)
         {
             
         }

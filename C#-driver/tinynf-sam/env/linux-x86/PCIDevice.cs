@@ -4,11 +4,11 @@ using Utilities;
 
 namespace Env.linuxx86
 {
-    public class PCIDevice : IPCIDevice
+    public class PCIDevice
     {
         private const ushort PCI_CONFIG_ADDR = 0xCF8;
         private const ushort PCI_CONFIG_DATA = 0xCFC;
-        private static Logger log = new Logger(Constants.logLevel);
+        public static Logger log = new Logger(Constants.logLevel);
         private byte bus;
         private byte device;
         private byte function;
@@ -92,7 +92,7 @@ namespace Env.linuxx86
 
         }
 
-        uint IPCIDevice.PciRead(byte reg)
+        public uint PciRead(byte reg)
         {
             if (GetIoportAccess())
             {
@@ -111,7 +111,7 @@ namespace Env.linuxx86
             return 0xFFFFFFFFu; // same as reading unknown reg
         }
 
-        void IPCIDevice.PciWrite(byte reg, uint value)
+        public void PciWrite(byte reg, uint value)
         {
             if (GetIoportAccess())
             {
