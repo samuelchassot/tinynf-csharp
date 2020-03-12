@@ -30,6 +30,7 @@ namespace tinynf_sam
             // First make sure the PCI device is really an 82599ES 10-Gigabit SFI/SFP+ Network Connection
             // According to https://cateee.net/lkddb/web-lkddb/IXGBE.html, this means vendor ID (bottom 16 bits) 8086, device ID (top 16 bits) 10FB
             uint pciID = PciReg.PCI_ID.Read(pciDevice);
+            log.Debug(String.Format("PciReg PCI_ID read: {0:X}", pciID));
             if (pciID != ((0x10FBu << 16) | 0x8086u))
             {
                 log.Debug("PCI device is not what was expected");
