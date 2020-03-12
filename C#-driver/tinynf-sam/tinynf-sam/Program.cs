@@ -8,8 +8,6 @@ namespace tinynf_sam
 {
     class Program
     {
-
-        private static Logger log = new Logger(Constants.logLevel);
         private static Memory mem = new Memory();
 
         /// <summary>
@@ -22,7 +20,7 @@ namespace tinynf_sam
             PCIDevice[] pCIDevices = new PCIDevice[2];
             if (devicesCount != 2)
             {
-                log.Info("Not two arguments passed, Failed");
+                Util.log.Info("Not two arguments passed, Failed");
                 return 1;
             }
             //Parses PCI addresses in Bus:Device.Function format
@@ -47,24 +45,24 @@ namespace tinynf_sam
                 }
                 catch (Exception e)
                 {
-                    log.Info("Cannot initialize NetAgent n° " + n);
-                    log.Debug(e.ToString());
+                    Util.log.Info("Cannot initialize NetAgent n° " + n);
+                    Util.log.Debug(e.ToString());
                     return 2 + 100 * n;
                 }
                 devices[n] = NetDevice.CreateInstance(mem, pCIDevices[n]);
                 if(devices[n] == null)
                 {
-                    log.Info("cannot initialize netDevice n° " + n);
+                    Util.log.Info("cannot initialize netDevice n° " + n);
                     return 3 + 100 * n;
                 }
                 if (!devices[n].SetPromiscuous())
                 {
-                    log.Info("cannot make the netDevice n° " + n + " promiscuous");
+                    Util.log.Info("cannot make the netDevice n° " + n + " promiscuous");
                     return 4 + 100 * n;
                 }
                 if(!agents[n].SetInput(mem, devices[n]))
                 {
-                    log.Info("cannot set input of netAgent n° " + n);
+                    Util.log.Info("cannot set input of netAgent n° " + n);
                     return 5 + 100 * n;
                 }
             }
@@ -73,11 +71,11 @@ namespace tinynf_sam
             {
                 if (!agents[n].AddOutput(mem, devices[1 - n], 0))
                 {
-                    log.Info("Couldn't set agent TX");
+                    Util.log.Info("Couldn't set agent TX");
                     return 6 + 100 * n;
                 }
             }
-            log.Info("TinyNF initialized successfully!");
+            Util.log.Info("TinyNF initialized successfully!");
 
 
             while (true)
@@ -113,8 +111,8 @@ namespace tinynf_sam
             }
             catch (Exception ex)
             {
-                log.Info("Cannot parse the PCI address given");
-                log.Debug(ex.ToString());
+                Util.log.Info("Cannot parse the PCI address given");
+                Util.log.Debug(ex.ToString());
                 return null;
             }
             return new PCIDevice(bus, device, function);

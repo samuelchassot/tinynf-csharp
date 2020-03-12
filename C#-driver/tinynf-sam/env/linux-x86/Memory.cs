@@ -9,7 +9,6 @@ namespace Env.linuxx86
 {
     public class Memory
     {
-        private Logger log = new Logger(Constants.logLevel);
         private Dictionary<UIntPtr, MemoryMappedFile> allocatedMMF;
 
         private const uint HUGEPAGE_SIZE_POWER = (10 + 10 + 1);
@@ -49,7 +48,7 @@ namespace Env.linuxx86
         {
             if(size > HUGEPAGE_SIZE)
             {
-                log.Debug("Tn_mem_allocated: size is bigger than HUGE_PAGESIZE");
+                Util.log.Debug("Tn_mem_allocated: size is bigger than HUGE_PAGESIZE");
                 return UIntPtr.Zero;
             }
 
@@ -61,7 +60,7 @@ namespace Env.linuxx86
             }
             catch (Exception)
             {
-                log.Debug("Tn_mem_allocated: allocation failed");
+                Util.log.Debug("Tn_mem_allocated: allocation failed");
                 return UIntPtr.Zero;
             }
             if (mappedFile != null)
@@ -120,12 +119,12 @@ namespace Env.linuxx86
         {
             if(size > SIZE_MAX)
             {
-                log.Debug("Cannot mem_phys_to_virt with size bigger than SIZE_MAX");
+                Util.log.Debug("Cannot mem_phys_to_virt with size bigger than SIZE_MAX");
                 return UIntPtr.Zero;
             }
             if(addr != (UIntPtr) ((long)addr))
             {
-                log.Debug("mem_phys_to-virt: addr is to big to fit in a UIntPtr, exit");
+                Util.log.Debug("mem_phys_to-virt: addr is to big to fit in a UIntPtr, exit");
                 return UIntPtr.Zero;
             }
 
@@ -153,7 +152,7 @@ namespace Env.linuxx86
             {
                 return ptr;
             }
-            log.Debug("Error while mmap /dev/mem passing through C code, in Tn_mem_phys_to_virt");
+            Util.log.Debug("Error while mmap /dev/mem passing through C code, in Tn_mem_phys_to_virt");
             return UIntPtr.Zero;
 
         }
@@ -163,7 +162,7 @@ namespace Env.linuxx86
             UIntPtr pageSize = GetPageSize();
             if(pageSize == (UIntPtr)0)
             {
-                log.Debug("Couldn't get page size, in mem_virt_to_phys");
+                Util.log.Debug("Couldn't get page size, in mem_virt_to_phys");
                 return UIntPtr.Zero;
             }
 
@@ -173,7 +172,7 @@ namespace Env.linuxx86
             //use long to represent offset
             if(offset != (UIntPtr)((long)offset))
             {
-                log.Debug("the offset is to big to be represented as long, Tn_mem_virt_to_phys");
+                Util.log.Debug("the offset is to big to be represented as long, Tn_mem_virt_to_phys");
                 return UIntPtr.Zero;
             }
             int required = sizeof(ulong);
@@ -201,7 +200,7 @@ namespace Env.linuxx86
                     // We want the PFN, but it's only meaningful if the page is present; bit 63 indicates whether it is
                     if ((metadata & 0x8000000000000000) == 0)
                     {
-                        log.Debug("page is not present, Tn_mem_virt_to_phys");
+                        Util.log.Debug("page is not present, Tn_mem_virt_to_phys");
                         return UIntPtr.Zero;
                     }
 
@@ -209,7 +208,7 @@ namespace Env.linuxx86
                     ulong pfn = metadata & 0x7FFFFFFFFFFFFF;
                     if (pfn == 0)
                     {
-                        log.Debug("Page not mapped, Tn_mem_virt_to_phys");
+                        Util.log.Debug("Page not mapped, Tn_mem_virt_to_phys");
                         return UIntPtr.Zero;
                     }
                     ulong addrOffset = (ulong)addr % (ulong)pageSize;
@@ -219,7 +218,7 @@ namespace Env.linuxx86
             }
             catch (Exception ex)
             {
-                log.Debug("Cannot read the /proc/self/pagemap, in Tn_mem_virt_to_phys\n" + ex.ToString());
+                Util.log.Debug("Cannot read the /proc/self/pagemap, in Tn_mem_virt_to_phys\n" + ex.ToString());
                 return UIntPtr.Zero;
             }
 

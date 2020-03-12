@@ -28,7 +28,6 @@ namespace tinynf_sam
         private volatile UIntPtr[] rings; // 0 == shared receive/transmit, rest are exclusive transmit, size = IXGBE_AGENT_OUTPUTS_MAX
         private UIntPtr[] transmitTailAddrs;
 
-        private readonly static Logger log = new Logger(Constants.logLevel);
 
         /// <summary>
         /// Create a new NetAgent and return it. Because it needs to allocate memory and do other things
@@ -46,7 +45,7 @@ namespace tinynf_sam
             transmitHeadsPtr = mem.TnMemAllocate(IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX * TRANSMIT_HEAD_MULTIPLIER * 4);
             if(transmitHeadsPtr == UIntPtr.Zero)
             {
-                log.Debug("Cannot allocate memory for the transmitHeads");
+                Util.log.Debug("Cannot allocate memory for the transmitHeads");
                 throw new MemoryAllocationErrorException();
             }
 
@@ -54,7 +53,7 @@ namespace tinynf_sam
             UIntPtr buffPtr = mem.TnMemAllocate(IxgbeConstants.IXGBE_RING_SIZE * IxgbeConstants.IXGBE_PACKET_BUFFER_SIZE);
             if (buffPtr == UIntPtr.Zero)
             {
-                log.Debug("Cannot allocate memory for the buffer in net agent init");
+                Util.log.Debug("Cannot allocate memory for the buffer in net agent init");
                 throw new MemoryAllocationErrorException();
             }
             this.buffer = buffPtr;
@@ -64,7 +63,7 @@ namespace tinynf_sam
                 UIntPtr ringAddr = mem.TnMemAllocate(IxgbeConstants.IXGBE_RING_SIZE * 16);
                 if (ringAddr == UIntPtr.Zero)
                 {
-                    log.Debug("Cannot allocate memory for the ring number " + n + " for InitNetAgent");
+                    Util.log.Debug("Cannot allocate memory for the ring number " + n + " for InitNetAgent");
                     for (ulong m = 0; m < n; m++)
                     {
                         mem.TnMemFree(this.rings[m]);
@@ -94,7 +93,7 @@ namespace tinynf_sam
         {
             if (this.receiveTailAddr != UIntPtr.Zero)
             {
-                log.Debug("NetAgent receive was already set");
+                Util.log.Debug("NetAgent receive was already set");
                 return false;
             }
             // The 82599 has more than one receive queue, but we only need queue 0
@@ -103,7 +102,7 @@ namespace tinynf_sam
             // See later for details of RXDCTL.ENABLE
             if (IxgbeReg.RXDCTL.Cleared(device.Addr, IxgbeRegField.RXDCTL_ENABLE, queueIndex))
             {
-                log.Debug("Receive queue is already in use");
+                Util.log.Debug("Receive queue is already in use");
                 return false;
             }
 
@@ -122,7 +121,7 @@ namespace tinynf_sam
             UIntPtr ringPhysAddr = mem.TnMemVirtToPhys(this.rings[0]);
             if (ringPhysAddr == UIntPtr.Zero)
             {
-                log.Debug("Could not get phys addr of main ring");
+                Util.log.Debug("Could not get phys addr of main ring");
                 return false;
             }
             IxgbeReg.RDBAH.Write(device.Addr, (uint)((ulong)ringPhysAddr >> 32), idx: queueIndex);
@@ -153,7 +152,7 @@ namespace tinynf_sam
             // INTERPRETATION-MISSING: No timeout is mentioned here, let's say 1s to be safe.
             if (IxgbeConstants.TimeoutCondition(1000 * 1000, IxgbeReg.RXDCTL.Cleared(device.Addr, IxgbeRegField.RXDCTL_ENABLE, queueIndex)))
             {
-                log.Debug("RXDCTL.ENABLE did not set, cannot enable queue");
+                Util.log.Debug("RXDCTL.ENABLE did not set, cannot enable queue");
                 return false;
             }
 
@@ -168,7 +167,7 @@ namespace tinynf_sam
             // INTERPRETATION-MISSING: Another undefined timeout, assuming 1s as usual
             if (IxgbeConstants.TimeoutCondition(1000 * 1000, IxgbeReg.SECRXSTAT.Cleared(device.Addr, IxgbeRegField.SECRXSTAT_SECRX_RDY)))
             {
-                log.Debug("SECRXSTAT.SECRXRDY timed out, cannot enable queue");
+                Util.log.Debug("SECRXSTAT.SECRXRDY timed out, cannot enable queue");
                 return false;
             }
 
@@ -203,12 +202,12 @@ namespace tinynf_sam
 
             if (outputsCountLocalVar == IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX)
             {
-                log.Debug("The agent is already using the maximum amount of transmit queues");
+                Util.log.Debug("The agent is already using the maximum amount of transmit queues");
                 return false;
             }
             if (longQueueIndex >= IxgbeConstants.IXGBE_TRANSMIT_QUEUES_COUNT)
             {
-                log.Debug("Transmit queue does not exist");
+                Util.log.Debug("Transmit queue does not exist");
                 return false;
             }
 
@@ -218,7 +217,7 @@ namespace tinynf_sam
             // See later for details of TXDCTL.ENABLE
             if(!IxgbeReg.TXDCTL.Cleared(device.Addr, IxgbeRegField.TXDCTL_ENABLE, queueIndex))
             {
-                log.Debug("Transmit queue is already in use");
+                Util.log.Debug("Transmit queue is already in use");
                 return false;
             }
 
@@ -237,7 +236,7 @@ namespace tinynf_sam
                 UIntPtr packetPhysAddr = mem.TnMemVirtToPhys(packet);
                 if(packetPhysAddr == UIntPtr.Zero)
                 {
-                    log.Debug("Could not get a packet's physical address");
+                    Util.log.Debug("Could not get a packet's physical address");
                 }
 
                 //ring[n * 2u] = packetPhysAddr; IN C CODE
@@ -251,7 +250,7 @@ namespace tinynf_sam
             UIntPtr ringPhysAddr = mem.TnMemVirtToPhys((UIntPtr)ring);
             if(ringPhysAddr == UIntPtr.Zero)
             {
-                log.Debug("Could not get a transmit ring's physical address");
+                Util.log.Debug("Could not get a transmit ring's physical address");
                 return false;
             }
 
@@ -281,7 +280,7 @@ namespace tinynf_sam
             UIntPtr headPhysAddr = mem.TnMemVirtToPhys((UIntPtr)((ulong)transmitHeadsPtr + outputsCount*TRANSMIT_HEAD_MULTIPLIER*4));
             if (headPhysAddr == UIntPtr.Zero)
             {
-                log.Debug("Could not get the physical address of the transmit head");
+                Util.log.Debug("Could not get the physical address of the transmit head");
                 return false;
             }
             //	Section 7.2.3.5.2 Tx Head Pointer Write Back:
@@ -294,7 +293,7 @@ namespace tinynf_sam
             // INTERPRETATION-INCORRECT: Empirically, the answer is... 16 bytes. Write-back has no effect otherwise. So both versions are wrong.
             if ((ulong)headPhysAddr % 16u != 0)
             {
-                log.Debug("Transmit head's physical address is not aligned properly");
+                Util.log.Debug("Transmit head's physical address is not aligned properly");
                 return false;
             }
             //	Section 8.2.3.9.11 Tx Descriptor Completion Write Back Address Low (TDWBAL[n]):
@@ -315,7 +314,7 @@ namespace tinynf_sam
 
             if(IxgbeConstants.TimeoutCondition(1000*1000, IxgbeReg.TXDCTL.Cleared(device.Addr, IxgbeRegField.TXDCTL_ENABLE, queueIndex)))
             {
-                log.Debug("TXDCTL.ENABLE did not set, cannot enable queue");
+                Util.log.Debug("TXDCTL.ENABLE did not set, cannot enable queue");
                 return false;
             }
             // "Note: The tail register of the queue (TDT) should not be bumped until the queue is enabled."
