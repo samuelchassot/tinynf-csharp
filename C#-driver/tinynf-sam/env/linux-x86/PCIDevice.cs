@@ -98,6 +98,7 @@ namespace Env.linuxx86
 
         public uint PciRead(byte reg)
         {
+            log.Debug("PciRead entrypoint");
             if (GetIoportAccess())
             {
                 log.Debug("PCIRead : IoPort Access is granted");
