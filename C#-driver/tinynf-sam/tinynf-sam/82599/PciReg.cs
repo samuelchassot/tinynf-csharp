@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Env;
 using Env.linuxx86;
 using Utilities;

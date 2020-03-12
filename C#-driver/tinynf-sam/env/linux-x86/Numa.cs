@@ -25,15 +25,17 @@ namespace Env.linuxx86
             Util.log.Debug("NUMA: NumaIsCurrentNode:  this_node = " + thisNode + "    node in argument = " + node);
             return thisNode == (uint)node;
         }
-        public unsafe static bool TnNumaGetAddrNode(UIntPtr addr, UInt64* outNode)
+        public unsafe static (bool, ulong) TnNumaGetAddrNode(UIntPtr addr)
         {
             int node = -1;
+            ulong outNode = ulong.MaxValue;
+            bool ok = false;
             if(get_mempolicy(&node, null, 0, (void*)addr, 1 | 2) == 0)
             {
-                *outNode = (UInt64)node;
-                return true;
+                outNode = (ulong)node;
+                ok = true;
             }
-            return false;
+            return (ok, outNode);
         }
     }
 }

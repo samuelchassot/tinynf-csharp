@@ -70,8 +70,8 @@ namespace Env.linuxx86
                 byte* poke = null;
                 accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref poke);
                 UIntPtr ptr = (UIntPtr)poke;
-                ulong node;
-                if (Numa.TnNumaGetAddrNode(ptr, &node))
+                (bool okGetAddr, ulong node) = Numa.TnNumaGetAddrNode(ptr);
+                if (okGetAddr)
                 {
                     if (Numa.TnNumaIsCurrentNode(node))
                     {
