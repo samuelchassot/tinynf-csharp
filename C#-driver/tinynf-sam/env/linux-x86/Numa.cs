@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using Utilities;
 
 namespace Env.linuxx86
 {
@@ -18,6 +19,7 @@ namespace Env.linuxx86
             uint this_node = uint.MaxValue;
             if(getcpu(null, &this_node) != 0)
             {
+                Util.log.Debug("NumaIsCurrentNode: cannot getCpu");
                 return false;
             }
             return this_node == (uint)node;
