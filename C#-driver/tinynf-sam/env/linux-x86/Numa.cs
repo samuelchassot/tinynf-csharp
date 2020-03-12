@@ -16,20 +16,21 @@ namespace Env.linuxx86
 
         public unsafe static bool TnNumaIsCurrentNode(UInt64 node)
         {
-            uint this_node = uint.MaxValue;
-            if(getcpu(null, &this_node) != 0)
+            uint thisNode = uint.MaxValue;
+            if(getcpu(null, &thisNode) != 0)
             {
                 Util.log.Debug("NumaIsCurrentNode: cannot getCpu");
                 return false;
             }
-            return this_node == (uint)node;
+            Util.log.Debug("NUMA: NumaIsCurrentNode:  this_node = " + thisNode + "    node in argument = " + node);
+            return thisNode == (uint)node;
         }
-        public unsafe static bool TnNumaGetAddrNode(UIntPtr addr, UInt64* out_node)
+        public unsafe static bool TnNumaGetAddrNode(UIntPtr addr, UInt64* outNode)
         {
             int node = -1;
             if(get_mempolicy(&node, null, 0, (void*)addr, 1 | 2) == 0)
             {
-                *out_node = (UInt64)node;
+                *outNode = (UInt64)node;
                 return true;
             }
             return false;
