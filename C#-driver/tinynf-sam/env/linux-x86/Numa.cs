@@ -22,15 +22,17 @@ namespace Env.linuxx86
             }
             return this_node == (uint)node;
         }
-        public unsafe static bool TnNumaGetAddrNode(UIntPtr addr, UInt64* out_node)
+        public unsafe static (bool, ulong) TnNumaGetAddrNode(UIntPtr addr)
         {
             int node = -1;
+            ulong outNode = ulong.MaxValue;
+            bool ok = false;
             if(get_mempolicy(&node, null, 0, (void*)addr, 1 | 2) == 0)
             {
-                *out_node = (UInt64)node;
-                return true;
+                outNode = (ulong)node;
+                ok = true;
             }
-            return false;
+            return (ok, outNode);
         }
     }
 }
