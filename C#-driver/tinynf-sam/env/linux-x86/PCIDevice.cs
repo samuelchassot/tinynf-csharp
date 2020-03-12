@@ -44,7 +44,7 @@ namespace Env.linuxx86
             // Also note that since reading an int32 is 4 bytes, we need to access 4 consecutive ports for PCI config/data.
             if (ioperm(0x80, 1, 1) < 0 || ioperm(PCI_CONFIG_ADDR, 4, 1) < 0 || ioperm(PCI_CONFIG_DATA, 4, 1) < 0)
             {
-                log.Debug("PCIDevice: ioperms pci failed");
+                log.Debug("PCIDevice: PCI device is not what was expectedioperms pci failed");
                 return false;
             }
             return true;
@@ -57,7 +57,7 @@ namespace Env.linuxx86
         public ulong GetDeviceNode()
         {
             ulong nodeStrSize = 3ul;
-            string filename = string.Format("/sys/bus/pci/devices/0000:{0:D2}:{1:D2}.{2}/numa_node", bus, device, function);
+            string filename = string.Format("/sys/bus/pci/devices/0000:{0:X2}:{1:D2}.{2}/numa_node", bus, device, function);
             char[] nodeStr = Filesystem.TnFsReadline((int)nodeStrSize, filename);
             if(nodeStr == null)
             {
