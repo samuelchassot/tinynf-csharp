@@ -42,6 +42,10 @@ namespace Env.linuxx86
             // Make sure we can talk to the devices
             // We access port 0x80 to wait after an outl, since it's the POST port so safe to do anything with (it's what glibc uses in the _p versions of outl/inl)
             // Also note that since reading an int32 is 4 bytes, we need to access 4 consecutive ports for PCI config/data.
+            log.Debug("PCI ioport Access : " + ioperm(0x80, 1, 1));
+            log.Debug("PCI ioport Access : " + ioperm(PCI_CONFIG_ADDR, 4, 1));
+            log.Debug("PCI ioport Access : " + ioperm(PCI_CONFIG_DATA, 4, 1));
+
             if (ioperm(0x80, 1, 1) < 0 || ioperm(PCI_CONFIG_ADDR, 4, 1) < 0 || ioperm(PCI_CONFIG_DATA, 4, 1) < 0)
             {
                 log.Debug("PCIDevice: PCI device is not what was expectedioperms pci failed");
@@ -110,6 +114,7 @@ namespace Env.linuxx86
                     }
                 }
             }
+            log.Debug("PCIRead : cannot get IoPort access");
             return 0xFFFFFFFFu; // same as reading unknown reg
         }
 
