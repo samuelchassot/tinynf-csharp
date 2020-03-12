@@ -1,8 +1,8 @@
 # Sam - Semester project - Driver High Level Language
 
-## TODO
--[ ] find a way to run it on the right CPU (at least)
--[ ] find a way to run it using scripts from Solal even without make
+## TODO
+- [ ] find a way to run it on the right CPU (at least)
+- [ ] find a way to run it using scripts from Solal even without make
 
 ## Observations, notes
 - will need to call libc things, especially to perform syscall or to work on the memory directly. C# can't access hw features so need to pass by C. But don't seem to loose advantages of HL languages, even taking that into account as we have them in other places.
