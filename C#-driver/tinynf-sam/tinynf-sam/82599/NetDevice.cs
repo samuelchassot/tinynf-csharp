@@ -9,7 +9,6 @@ namespace tinynf_sam
     {
         private UIntPtr addr;
         private PCIDevice pciDevice;
-        private static readonly Logger log = new Logger(Constants.logLevel);
 
         private NetDevice(PCIDevice pciDevice)
         {
@@ -30,10 +29,10 @@ namespace tinynf_sam
             // First make sure the PCI device is really an 82599ES 10-Gigabit SFI/SFP+ Network Connection
             // According to https://cateee.net/lkddb/web-lkddb/IXGBE.html, this means vendor ID (bottom 16 bits) 8086, device ID (top 16 bits) 10FB
             uint pciID = PciReg.PCI_ID.Read(pciDevice);
-            log.Debug(String.Format("PciReg PCI_ID read: {0:X}", pciID));
+            Util.log.Debug(String.Format("PciReg PCI_ID read: {0:X}", pciID));
             if (pciID != ((0x10FBu << 16) | 0x8086u))
             {
-                log.Debug("PCI device is not what was expected");
+                Util.log.Debug("PCI device is not what was expected");
                 return null;
             }
 
@@ -44,7 +43,7 @@ namespace tinynf_sam
             // Thus, the device cannot go from D3 to D0 without resetting, which would mean losing the BARs.
             if(!PciReg.PCI_PMCSR.Cleared(pciDevice, PciRegField.PCI_PMCSR_POWER_STATE))
             {
-                log.Debug("PCI device not in D0.");
+                Util.log.Debug("PCI device not in D0.");
                 return null;
             }
 
@@ -60,7 +59,7 @@ namespace tinynf_sam
             // Sanity check: a 64-bit BAR must have bit 2 of low as 1 and bit 1 of low as 0 as per Table 9-4 Base Address Registers' Fields
             if ((pciBar0Low & IxgbeConstants.BitNSet(2)) == 0 || (pciBar0Low & IxgbeConstants.BitNSet(1)) != 0)
             {
-                log.Debug("BAR0 is not a 64-bit BAR");
+                Util.log.Debug("BAR0 is not a 64-bit BAR");
                 return null;
             }
 
@@ -76,12 +75,12 @@ namespace tinynf_sam
             UIntPtr virtAddr = memory.TnMePhysToVirt(devPhysAddr, 128 * 1024);
             if(virtAddr == UIntPtr.Zero)
             {
-                log.Debug("Phys to virt translation failed. NetDevice creation");
+                Util.log.Debug("Phys to virt translation failed. NetDevice creation");
                 return null;
             }
             newDevice.Addr = virtAddr;
 
-            log.Verbose(string.Format("Device {0}:{1}.{2} mapped to 0x{3}", newDevice.pciDevice.Bus, newDevice.pciDevice.Device, newDevice.pciDevice.Function, newDevice.Addr));
+            Util.log.Verbose(string.Format("Device {0}:{1}.{2} mapped to 0x{3}", newDevice.pciDevice.Bus, newDevice.pciDevice.Device, newDevice.pciDevice.Function, newDevice.Addr));
 
             // "The following sequence of commands is typically issued to the device by the software device driver in order to initialize the 82599 for normal operation.
             //  The major initialization steps are:"
@@ -99,7 +98,7 @@ namespace tinynf_sam
             //	"Device initialization typically starts with a software reset that puts the device into a known state and enables the device driver to continue the initialization sequence."
             if (!newDevice.Reset())
             {
-                log.Debug("Could not reset.");
+                Util.log.Debug("Could not reset.");
                 return null;
             }
 
@@ -144,7 +143,7 @@ namespace tinynf_sam
             // INTERPRETATION-MISSING: This refers to Section 8.2.3.2.1 EEPROM/Flash Control Register (EEC), Bit 9 "EEPROM Auto-Read Done"
             // INTERPRETATION-MISSING: No timeout is mentioned, so we use 1s.
             if(IxgbeConstants.TimeoutCondition(1000*1000, IxgbeReg.EEC.Cleared(newDevice.Addr, IxgbeRegField.EEC_AUTO_RD))){
-                log.Debug("EEPROM auto read timed out");
+                Util.log.Debug("EEPROM auto read timed out");
                 return null;
             }
             // INTERPRETATION-MISSING: We also need to check bit 8 of the same register, "EEPROM Present", which indicates "EEPROM is present and has the correct signature field. This bit is read-only.",
@@ -152,7 +151,7 @@ namespace tinynf_sam
             // INTERPRETATION-MISSING: We also need to check whether the EEPROM has a valid checksum, using the FWSM's register EXT_ERR_IND, where "0x00 = No error"
             if(IxgbeReg.EEC.Cleared(newDevice.Addr, IxgbeRegField.EEC_EE_PRES))
             {
-                log.Debug("EEPROM not present or invalid");
+                Util.log.Debug("EEPROM not present or invalid");
                 return null;
             }
 
@@ -160,7 +159,7 @@ namespace tinynf_sam
             // INTERPRETATION-MISSING: Once again, no timeout mentioned, so we use 1s
             if(IxgbeConstants.TimeoutCondition(1000*1000, IxgbeReg.RDRXCTL.Cleared(newDevice.Addr, IxgbeRegField.RDRXCTL_DMAIDONE)))
             {
-                log.Debug("DMA init timed out");
+                Util.log.Debug("DMA init timed out");
                 return null;
             }
 
@@ -252,7 +251,7 @@ namespace tinynf_sam
             //	Section 8.2.3.7.23 Rx Filter ECC Err Insertion 0 (RXFECCERR0):
             //		"Filter ECC Error indication Enablement.
             //		 When set to 1b, enables the ECC-INT + the RXF-blocking during ECC-ERR in one of the Rx filter memories.
-            //		 At 0b, the ECC logic can still function overcoming only single errors while dual or multiple errors can be ignored silently."
+            //		 At 0b, the ECC Util.logic can still function overcoming only single errors while dual or multiple errors can be ignored silently."
             // INTERPRETATION-POINTLESS: Since we do not want flexible filters, this step is not necessary.
             //	"Program the different Rx filters and Rx offloads via registers FCTRL, VLNCTRL, MCSTCTRL, RXCSUM, RQTC, RFCTL, MPSAR, RSSRK, RETA, SAQF, DAQF, SDPQF, FTQF, SYNQF, ETQF, ETQS, RDRXCTL, RSCDBU."
             // We do not touch FCTRL here, if the user wants promiscuous mode they will call the appropriate function.
@@ -500,7 +499,7 @@ namespace tinynf_sam
                 // INTERPRETATION-MISSING: There is no mention of what to do if the 82599 never clears the bit; 1s seems like a decent timeout
                 if (IxgbeConstants.TimeoutCondition(1000 * 1000, !IxgbeReg.RXDCTL.Cleared(addr, IxgbeRegField.RXDCTL_ENABLE, queue)))
                 {
-                    log.Debug("RXDCTL.ENABLE did not clear, cannot disable receive");
+                    Util.log.Debug("RXDCTL.ENABLE did not clear, cannot disable receive");
                     return false;
                 }
 
@@ -522,7 +521,7 @@ namespace tinynf_sam
                 // INTERPRETATION-MISSING: Might? Let's say this is a must, and that we assume the software resets work...
                 if(!PciReg.PCI_DEVICESTATUS.Cleared(pciDevice, PciRegField.PCI_DEVICESTATUS_TRANSACTIONPENDING))
                 {
-                    log.Debug("DEVICESTATUS.TRANSACTIONPENDING did not clear, cannot perform master disable");
+                    Util.log.Debug("DEVICESTATUS.TRANSACTIONPENDING did not clear, cannot perform master disable");
                     return false;
                 }
 

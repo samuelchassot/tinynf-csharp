@@ -8,7 +8,6 @@ namespace Env.linuxx86
     {
         private const ushort PCI_CONFIG_ADDR = 0xCF8;
         private const ushort PCI_CONFIG_DATA = 0xCFC;
-        public static Logger log = new Logger(Constants.logLevel);
         private byte bus;
         private byte device;
         private byte function;
@@ -42,9 +41,10 @@ namespace Env.linuxx86
             // Make sure we can talk to the devices
             // We access port 0x80 to wait after an outl, since it's the POST port so safe to do anything with (it's what glibc uses in the _p versions of outl/inl)
             // Also note that since reading an int32 is 4 bytes, we need to access 4 consecutive ports for PCI config/data.
+
             if (ioperm(0x80, 1, 1) < 0 || ioperm(PCI_CONFIG_ADDR, 4, 1) < 0 || ioperm(PCI_CONFIG_DATA, 4, 1) < 0)
             {
-                log.Debug("PCIDevice: PCI device is not what was expectedioperms pci failed");
+                Util.log.Debug("PCIDevice: PCI device is not what was expected ioperms pci failed");
                 return false;
             }
             return true;
@@ -61,18 +61,18 @@ namespace Env.linuxx86
             char[] nodeStr = Filesystem.TnFsReadline((int)nodeStrSize, filename);
             if(nodeStr == null)
             {
-                log.Debug("Cannot read node string : GetDeviceNode");
+                Util.log.Debug("Cannot read node string : GetDeviceNode");
                 return ulong.MaxValue;
             }
             if(nodeStr[1] != '\n')
             {
-                log.Debug("Long NUMA node, not supported");
+                Util.log.Debug("Long NUMA node, not supported");
                 return ulong.MaxValue;
             }
             char nodeChar = nodeStr[0];
             if(nodeChar < '0' || nodeChar > '9')
             {
-                log.Debug("Unknown NUMA node encoding");
+                Util.log.Debug("Unknown NUMA node encoding");
                 return ulong.MaxValue;
             }
             return (ulong) (nodeChar - '0');
@@ -103,7 +103,7 @@ namespace Env.linuxx86
                     {
                         PciAddress(reg);
                         uint result = inlCustom(PCI_CONFIG_DATA);
-                        log.Verbose(string.Format("Read PCI : from reg {0} = {1}", reg, result));
+                        Util.log.Verbose(string.Format("Read PCI : from reg {0} = {1}", reg, result));
                         return result;
                     }
                 }
@@ -122,7 +122,7 @@ namespace Env.linuxx86
                     {
                         PciAddress(reg);
                         outlCustom(value, PCI_CONFIG_DATA);
-                        log.Verbose(string.Format("Write PCI : to reg {0} = {1}", reg, value));
+                        Util.log.Verbose(string.Format("Write PCI : to reg {0} = {1}", reg, value));
                     }
                 }
             }

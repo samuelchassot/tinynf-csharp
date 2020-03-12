@@ -8,7 +8,6 @@ namespace Env.linuxx86
     /// </summary>
     public static class Filesystem
     {
-        private static Logger log = new Logger(Constants.logLevel);
         /// <summary>
         /// Reads a single line from the file at the given path into the given line, reading at most line_size characters.
         /// The file can have c#-style placeholders ("this is an example of placeholders {0} with another one here {1}"), in which case additional arguments must be passed.
@@ -26,8 +25,8 @@ namespace Env.linuxx86
             }
             catch (System.Exception ex)
             {
-                log.Debug("Cannot format the path");
-                log.Debug(ex.ToString());
+                Util.log.Debug("Cannot format the path");
+                Util.log.Debug(ex.ToString());
                 return null;
             }
             FileStream file = null;
@@ -37,8 +36,8 @@ namespace Env.linuxx86
             }
             catch (System.Exception ex)
             {
-                log.Debug("Cannot open the file");
-                log.Debug(ex.ToString());
+                Util.log.Debug("Cannot open the file");
+                Util.log.Debug(ex.ToString());
                 CloseFile(file);
                 return null;
             }
