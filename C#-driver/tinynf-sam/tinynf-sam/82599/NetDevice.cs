@@ -12,7 +12,7 @@ namespace tinynf_sam
 
         private NetDevice(PCIDevice pciDevice)
         {
-            
+            this.pciDevice = pciDevice;
         }
         public UIntPtr Addr { get { return addr; } private set => addr = value; }
 

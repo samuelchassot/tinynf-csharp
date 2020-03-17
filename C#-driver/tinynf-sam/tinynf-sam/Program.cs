@@ -17,6 +17,7 @@ namespace tinynf_sam
         unsafe static int Main(string[] args)
         {
             ulong devicesCount = (ulong)args.Length;
+            Util.log.Debug(args[0]);
             PCIDevice[] pCIDevices = new PCIDevice[2];
             if (devicesCount != 2)
             {
