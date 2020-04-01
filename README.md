@@ -6,6 +6,10 @@
 - instead of using mmap in C, I will use *MemoryMappedFile* from .NET (https://docs.microsoft.com/en-us/dotnet/api/system.io.memorymappedfiles.memorymappedfile?view=netframework-4.8#remarks). With the method *CreateNew*, it can create a region in memory without mapping to a file, useful for interprocess communication. Exactly what I need.
 
 - I need to allocate memory using MemoryMappedFile for the *transmitHeads* even if not the case in the C code, because using field doesn't ensure fixed position in memory.
+
+### Debugging
+- 01.04.2020: numa seems to work, seems to not be able to read pci register, let's try with C code to see where is the problem.
+
 ## Instructions
 - ```make``` the library in *cwrapper* folder
 - copy the *CWrapper.so* in the same as the executable built by VS
