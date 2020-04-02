@@ -104,17 +104,13 @@ namespace Env.linuxx86
 
         public uint PciRead(byte reg)
         {
-            Util.log.Debug("PciRead entrypoint");
             if (GetIoportAccess())
-            {
-                Util.log.Debug("PCIRead : IoPort Access is granted");
+            {       
                 ulong deviceNode = GetDeviceNode();
                 if (deviceNode != ulong.MaxValue)
-                {
-                    Util.log.Debug("PCIRead : Can get DeviceNode");
+                {       
                     if (Numa.TnNumaIsCurrentNode(deviceNode))
                     {
-                        Util.log.Debug("PCIRead : device is on the same node");
                         PciAddress(reg);
                         uint result = inlCustom(PCI_CONFIG_DATA);
                         Util.log.Verbose(string.Format("Read PCI : from reg {0} = {1}", reg, result));
