@@ -132,13 +132,13 @@ namespace tinynf_sam
         /// <param name="timeoutMicroSec"></param>
         /// <param name="condition"></param>
         /// <returns></returns>
-        public static bool TimeoutCondition(int timeoutMicroSec, bool condition)
+        public static bool TimeoutCondition(int timeoutMicroSec, Func<bool> condition)
         {
             bool timedOut = true;
             Time.SleepMicroSec(timeoutMicroSec % 10);
             for (int i = 0; i < 10; i++)
             {
-                if (!condition)
+                if (!condition())
                 {
                     timedOut = false;
                     break;

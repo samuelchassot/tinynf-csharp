@@ -150,7 +150,7 @@ namespace tinynf_sam
             IxgbeReg.RXDCTL.Set(device.Addr, IxgbeRegField.RXDCTL_ENABLE, queueIndex);
             // "- Poll the RXDCTL register until the Enable bit is set. The tail should not be bumped before this bit was read as 1b."
             // INTERPRETATION-MISSING: No timeout is mentioned here, let's say 1s to be safe.
-            if (IxgbeConstants.TimeoutCondition(1000 * 1000, IxgbeReg.RXDCTL.Cleared(device.Addr, IxgbeRegField.RXDCTL_ENABLE, queueIndex)))
+            if (IxgbeConstants.TimeoutCondition(1000 * 1000, () => IxgbeReg.RXDCTL.Cleared(device.Addr, IxgbeRegField.RXDCTL_ENABLE, queueIndex)))
             {
                 Util.log.Debug("RXDCTL.ENABLE did not set, cannot enable queue");
                 return false;
@@ -165,7 +165,7 @@ namespace tinynf_sam
             IxgbeReg.SECRXCTRL.Set(device.Addr, IxgbeRegField.SECRXCTRL_RX_DIS);
             //	"- Wait for the data paths to be emptied by HW. Poll the SECRXSTAT.SECRX_RDY bit until it is asserted by HW."
             // INTERPRETATION-MISSING: Another undefined timeout, assuming 1s as usual
-            if (IxgbeConstants.TimeoutCondition(1000 * 1000, IxgbeReg.SECRXSTAT.Cleared(device.Addr, IxgbeRegField.SECRXSTAT_SECRX_RDY)))
+            if (IxgbeConstants.TimeoutCondition(1000 * 1000, () => IxgbeReg.SECRXSTAT.Cleared(device.Addr, IxgbeRegField.SECRXSTAT_SECRX_RDY)))
             {
                 Util.log.Debug("SECRXSTAT.SECRXRDY timed out, cannot enable queue");
                 return false;
@@ -312,7 +312,7 @@ namespace tinynf_sam
             // INTERPRETATION-MISSING: No timeout is mentioned here, let's say 1s to be safe.
             IxgbeReg.TXDCTL.Set(device.Addr, IxgbeRegField.TXDCTL_ENABLE, queueIndex);
 
-            if(IxgbeConstants.TimeoutCondition(1000*1000, IxgbeReg.TXDCTL.Cleared(device.Addr, IxgbeRegField.TXDCTL_ENABLE, queueIndex)))
+            if(IxgbeConstants.TimeoutCondition(1000*1000, () => IxgbeReg.TXDCTL.Cleared(device.Addr, IxgbeRegField.TXDCTL_ENABLE, queueIndex)))
             {
                 Util.log.Debug("TXDCTL.ENABLE did not set, cannot enable queue");
                 return false;
