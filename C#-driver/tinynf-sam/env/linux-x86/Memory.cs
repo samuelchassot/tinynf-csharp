@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.MemoryMappedFiles;
@@ -157,6 +157,9 @@ namespace Env.linuxx86
 
         }
 
+        [DllImport(@"FunctionsWrapper.so")]
+        private static unsafe extern int mem_virt_to_phys(UIntPtr page, UIntPtr map_offset, ulong* outMetadata);
+
         public unsafe UIntPtr TnMemVirtToPhys(UIntPtr addr)
         {
             UIntPtr pageSize = GetPageSize();
@@ -167,7 +170,7 @@ namespace Env.linuxx86
             }
 
             UIntPtr nPage = (UIntPtr)((ulong)addr / (ulong)pageSize);
-            UIntPtr offset = (UIntPtr)((ulong)nPage * (ulong)addr);
+            UIntPtr offset = (UIntPtr)((ulong)nPage * sizeof(ulong));
 
             //use long to represent offset
             if(offset != (UIntPtr)((long)offset))
@@ -178,49 +181,92 @@ namespace Env.linuxx86
             int required = sizeof(ulong);
             byte[] res = new byte[required];
 
-            try
+            // DOESN'T WORK!!!! probably because the file has length 0
+            //try
+            //{
+            // Let's call C code
+            //using (BinaryReader b = new BinaryReader(File.Open("/proc/self/pagemap", FileMode.Open)))
+            //{
+            //    long pos = (long)offset;
+            //    int count = 0;
+
+            //    b.BaseStream.Seek(pos, SeekOrigin.Begin);
+            //    while (count < required)
+            //    {
+            //        byte y = b.ReadByte();
+            //        res[count] = y;
+            //        pos++;
+            //        count++;
+            //    }
+            //    //x86 is little endian
+            //    ulong metadata = BitConverter.ToUInt64(res);
+
+            //    // We want the PFN, but it's only meaningful if the page is present; bit 63 indicates whether it is
+            //    if ((metadata & 0x8000000000000000) == 0)
+            //    {
+            //        Util.log.Debug("page is not present, Tn_mem_virt_to_phys");
+            //        return UIntPtr.Zero;
+            //    }
+
+            //    // PFN = bits 0-54
+            //    ulong pfn = metadata & 0x7FFFFFFFFFFFFF;
+            //    if (pfn == 0)
+            //    {
+            //        Util.log.Debug("Page not mapped, Tn_mem_virt_to_phys");
+            //        return UIntPtr.Zero;
+            //    }
+            //    ulong addrOffset = (ulong)addr % (ulong)pageSize;
+            //    return (UIntPtr)(pfn * (ulong)pageSize + addrOffset);
+            //}
+            //}
+
+            //catch (Exception ex)
+            //{
+            //    Util.log.Debug("Cannot read the /proc/self/pagemap, in Tn_mem_virt_to_phys\n" + ex.ToString());
+            //    return UIntPtr.Zero;
+            //}
+            // DOESN'T WORK -- END
+
+            long pos = (long)offset;
+            //x86 is little endian
+            ulong metadata;
+            int execCode = mem_virt_to_phys(nPage, offset, &metadata);
+            if(execCode != 0)
             {
-                using (BinaryReader b = new BinaryReader(File.Open("/proc/self/pagemap", FileMode.Open)))
+                switch (execCode)
                 {
-                    long pos = (long)offset;
-                    int count = 0;
-
-                    b.BaseStream.Seek(pos, SeekOrigin.Begin);
-                    while (count < required)
-                    {
-                        Console.WriteLine("count = " + count);
-                        byte y = b.ReadByte();
-                        res[count] = y;
-                        pos++;
-                        count++;
-                    }
-                    //x86 is little endian
-                    ulong metadata = BitConverter.ToUInt64(res);
-
-                    // We want the PFN, but it's only meaningful if the page is present; bit 63 indicates whether it is
-                    if ((metadata & 0x8000000000000000) == 0)
-                    {
-                        Util.log.Debug("page is not present, Tn_mem_virt_to_phys");
-                        return UIntPtr.Zero;
-                    }
-
-                    // PFN = bits 0-54
-                    ulong pfn = metadata & 0x7FFFFFFFFFFFFF;
-                    if (pfn == 0)
-                    {
-                        Util.log.Debug("Page not mapped, Tn_mem_virt_to_phys");
-                        return UIntPtr.Zero;
-                    }
-                    ulong addrOffset = (ulong)addr % (ulong)pageSize;
-                    return (UIntPtr)(pfn * (ulong)pageSize + addrOffset);
-
+                    case 1:
+                        Util.log.Debug("MemVirtToPhys: Could not open the pagemap");
+                        break;
+                    case 2:
+                        Util.log.Debug("MemVirtToPhys: Could not seek the pagemap");
+                        break;
+                    case 3:
+                        Util.log.Debug("MemVirtToPhys: Could not read the pagemap");
+                        break;
+                    default:
+                        break;
                 }
-            }
-            catch (Exception ex)
-            {
-                Util.log.Debug("Cannot read the /proc/self/pagemap, in Tn_mem_virt_to_phys\n" + ex.ToString());
+
                 return UIntPtr.Zero;
             }
+
+            // We want the PFN, but it's only meaningful if the page is present; bit 63 indicates whether it is
+            if ((metadata & 0x8000000000000000) == 0)
+            {
+                Util.log.Debug("page is not present, Tn_mem_virt_to_phys");
+                return UIntPtr.Zero;
+            }
+
+            // PFN = bits 0-54
+            ulong pfn = metadata & 0x7FFFFFFFFFFFFF;
+            if (pfn == 0)
+            {
+                Util.log.Debug("Page not mapped, Tn_mem_virt_to_phys");
+                return UIntPtr.Zero;
+            }
+            ulong addrOffset = (ulong)addr % (ulong)pageSize;
+            return (UIntPtr)(pfn * (ulong)pageSize + addrOffset);
 
 
         }
