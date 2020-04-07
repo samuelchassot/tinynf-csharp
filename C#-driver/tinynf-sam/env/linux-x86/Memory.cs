@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.MemoryMappedFiles;
@@ -39,6 +39,9 @@ namespace Env.linuxx86
             return (UIntPtr)0;
         }
 
+        [DllImport("FunctionsWrapper.so")]
+        private static extern UIntPtr tn_mem_allocate_C(ulong size, ulong HUGEPAGE_SIZE, ulong HUGEPAGE_SIZE_POWER);
+
         /// <summary>
         /// Allocates memory using MemoryMappedFile.CreateNew().
         /// </summary>
@@ -52,34 +55,53 @@ namespace Env.linuxx86
                 return UIntPtr.Zero;
             }
 
-            MemoryMappedFile mappedFile;
-            try
+            // DOESN'T Seem to work
+            //MemoryMappedFile mappedFile;
+            //try
+            //{
+            //    //the mapName must be null on non-Windows OS
+            //    mappedFile = MemoryMappedFile.CreateNew(null, (long)size, MemoryMappedFileAccess.ReadWrite, MemoryMappedFileOptions.None, System.IO.HandleInheritability.Inheritable);
+            //}
+            //catch (Exception)
+            //{
+            //    Util.log.Debug("Tn_mem_allocated: allocation failed");
+            //    return UIntPtr.Zero;
+            //}
+            //if (mappedFile != null)
+            //{
+            //    //here we can cast because size is smaller than HUGEPAGE_SIZE = 2^21
+            //    var accessor = mappedFile.CreateViewAccessor(0, (long)size);
+            //    byte* poke = null;
+            //    accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref poke);
+            //    UIntPtr ptr = (UIntPtr)poke;
+            //    (bool okGetAddr, ulong node) = Numa.TnNumaGetAddrNode(ptr);
+            //    if (okGetAddr)
+            //    {
+            //        if (Numa.TnNumaIsCurrentNode(node))
+            //        {
+            //            allocatedMMF[ptr] = mappedFile;
+            //            return ptr;
+            //        }
+            //    }
+            //    mappedFile.Dispose();
+            //}
+
+            UIntPtr ptr = tn_mem_allocate_C(size, HUGEPAGE_SIZE, HUGEPAGE_SIZE_POWER);
+            (bool okGetAddr, ulong node) = Numa.TnNumaGetAddrNode(ptr);
+            if (okGetAddr)
             {
-                //the mapName must be null on non-Windows OS
-                mappedFile = MemoryMappedFile.CreateNew(null, (long)size, MemoryMappedFileAccess.ReadWrite, MemoryMappedFileOptions.None, System.IO.HandleInheritability.Inheritable);
-            }
-            catch (Exception)
-            {
-                Util.log.Debug("Tn_mem_allocated: allocation failed");
-                return UIntPtr.Zero;
-            }
-            if (mappedFile != null)
-            {
-                //here we can cast because size is smaller than HUGEPAGE_SIZE = 2^21
-                var accessor = mappedFile.CreateViewAccessor(0, (long)size);
-                byte* poke = null;
-                accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref poke);
-                UIntPtr ptr = (UIntPtr)poke;
-                (bool okGetAddr, ulong node) = Numa.TnNumaGetAddrNode(ptr);
-                if (okGetAddr)
+                if (Numa.TnNumaIsCurrentNode(node))
                 {
-                    if (Numa.TnNumaIsCurrentNode(node))
-                    {
-                        allocatedMMF[ptr] = mappedFile;
-                        return ptr;
-                    }
+                    return ptr;
                 }
-                mappedFile.Dispose();
+                else
+                {
+                    Util.log.Debug("Allocated memory is not in our NUMA node");
+                }
+            }
+            else
+            {
+                Util.log.Debug("Could not get memory's NUMA node");
             }
             return UIntPtr.Zero;
         }
