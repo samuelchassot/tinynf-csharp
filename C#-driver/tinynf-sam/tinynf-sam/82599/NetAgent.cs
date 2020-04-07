@@ -100,7 +100,7 @@ namespace tinynf_sam
             ushort queueIndex = 0;
 
             // See later for details of RXDCTL.ENABLE
-            if (IxgbeReg.RXDCTL.Cleared(device.Addr, IxgbeRegField.RXDCTL_ENABLE, queueIndex))
+            if (!IxgbeReg.RXDCTL.Cleared(device.Addr, IxgbeRegField.RXDCTL_ENABLE, queueIndex))
             {
                 Util.log.Debug("Receive queue is already in use");
                 return false;
@@ -224,7 +224,7 @@ namespace tinynf_sam
             // "The following steps should be done once per transmit queue:"
             // "- Allocate a region of memory for the transmit descriptor list."
             // This is already done in agent initialization as agent->rings[*]
-            ulong* ring = (ulong*)this.rings[outputsCount]; // was volatile in C code but in C#, cannot make pointer to volatile value
+            ulong* ring = (ulong*)this.rings[outputsCount];  // was volatile in C code but in C#, cannot make pointer to volatile value
 
             // Program all descriptors' buffer address now
             // n was a uintptr_t in C, I use ulong to be sure
