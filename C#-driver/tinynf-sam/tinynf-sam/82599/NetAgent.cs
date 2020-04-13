@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Env.linuxx86;
 using Utilities;
 
@@ -24,7 +24,7 @@ namespace tinynf_sam
 
         //transmitHeadsPtr here is the ptr pointing at the beginning of an allocated part of the memory of the size
         // IXGBE_AGENT_OUTPUTS_MAX * TRANSMIT_HEAD_MULTIPLIER
-        private UIntPtr transmitHeadsPtr; // size = IXGBE_AGENT_OUTPUTS_MAX * TRANSMIT_HEAD_MULTIPLIER
+        private volatile UIntPtr transmitHeadsPtr; // size = IXGBE_AGENT_OUTPUTS_MAX * TRANSMIT_HEAD_MULTIPLIER
         private volatile UIntPtr[] rings; // 0 == shared receive/transmit, rest are exclusive transmit, size = IXGBE_AGENT_OUTPUTS_MAX
         private UIntPtr[] transmitTailAddrs;
 
