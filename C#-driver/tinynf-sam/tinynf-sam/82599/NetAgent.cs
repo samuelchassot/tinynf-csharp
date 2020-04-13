@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Env.linuxx86;
 using Utilities;
 
@@ -124,6 +124,9 @@ namespace tinynf_sam
                 Util.log.Debug("Could not get phys addr of main ring");
                 return false;
             }
+
+            Util.log.Debug("For agent with rings[0] = " + rings[0] + " , the phys addr of the rings[0] is " + ringPhysAddr);
+
             IxgbeReg.RDBAH.Write(device.Addr, (uint)((ulong)ringPhysAddr >> 32), idx: queueIndex);
             IxgbeReg.RDBAL.Write(device.Addr, (uint)((ulong)ringPhysAddr & 0xFFFFFFFFu), idx: queueIndex);
             // "- Set the length register to the size of the descriptor ring (register RDLEN)."
@@ -354,16 +357,16 @@ namespace tinynf_sam
                     }
                 }
                 // Record that there was no packet
-                
+                Util.log.Debug("There was no packet");
                 flushedProcessedDelimiter = ulong.MaxValue;
                 return (false, -1, (UIntPtr)0);
             }
-
             // This cannot overflow because the packet is by definition in an allocated block of memory
             byte* outPacketAddr = (byte*)buffer + IxgbeConstants.IXGBE_PACKET_BUFFER_SIZE * processedDelimiter;
             // "Length Field (16-bit offset 0, 2nd line): The length indicated in this field covers the data written to a receive buffer."
             int outPacketLength = (int)(receiveMetadata & 0xFFu);
 
+            Util.log.Debug("There was a packet of length : " + outPacketLength);
             // Note that the out_ parameters have no meaning if this is false, but it's fine, their value will still make sense
             return (true, outPacketLength, (UIntPtr)outPacketAddr);
         }
