@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Env.linuxx86;
 using Utilities;
 
@@ -15,7 +15,7 @@ namespace tinynf_sam
         private ulong processedDelimiter;
         private ulong outputsCount;
         private ulong flushedProcessedDelimiter; // -1 if there was no packet last time, otherwise last flushed processed_delimiter
-        private byte[] padding;
+        private UIntPtr padding;
         // transmit heads must be 16-byte aligned; see alignment remarks in transmit queue setup
         // (there is also a runtime check to make sure the array itself is aligned properly)
         // plus, we want each head on its own cache line to avoid conflicts
@@ -37,7 +37,12 @@ namespace tinynf_sam
         public NetAgent(Memory mem)
         {
             receiveTailAddr = UIntPtr.Zero;
-            padding = new byte[3 * 8];
+            padding = mem.TnMemAllocate(3*8);
+            if(padding == UIntPtr.Zero)
+            {
+                Util.log.Debug("Cannot allocate mempory for the padding");
+                throw new MemoryAllocationErrorException();
+            }
             transmitTailAddrs = new UIntPtr[(int)IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX];
             rings = new UIntPtr[IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX];
             processedDelimiter = 0;
@@ -74,7 +79,7 @@ namespace tinynf_sam
                 this.rings[n] = ringAddr;
 
                 // initialize to uintptr.zero
-                this.transmitTailAddrs[n] = UIntPtr.Zero;//(UIntPtr)(&padding[0]);
+                this.transmitTailAddrs[n] = padding;
             }
 
             // Start in "no packet" state
@@ -87,7 +92,7 @@ namespace tinynf_sam
         public ulong Processed_delimiter { get => processedDelimiter; private set => processedDelimiter = value; }
         public ulong Outputs_count { get => outputsCount; private set => outputsCount = value; }
         public ulong Flushed_processed_delimiter { get => flushedProcessedDelimiter; private set => flushedProcessedDelimiter = value; }
-        public byte[] Padding { get => padding; private set => padding = value; }
+        public UIntPtr Padding { get => padding; private set => padding = value; }
 
         public bool SetInput(Memory mem, NetDevice device)
         {
@@ -197,7 +202,7 @@ namespace tinynf_sam
             ulong outputsCountLocalVar = 0;
             for(; outputsCountLocalVar < IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX; outputsCountLocalVar++)
             {
-                if(this.transmitTailAddrs[outputsCountLocalVar] == UIntPtr.Zero)
+                if(this.transmitTailAddrs[outputsCountLocalVar] == padding)
                 {
                     break;
                 }
@@ -368,6 +373,7 @@ namespace tinynf_sam
 
             Util.log.Debug("There was a packet of length : " + outPacketLength);
             // Note that the out_ parameters have no meaning if this is false, but it's fine, their value will still make sense
+
             return (true, outPacketLength, (UIntPtr)outPacketAddr);
         }
 
