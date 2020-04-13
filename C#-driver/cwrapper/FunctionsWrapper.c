@@ -120,3 +120,8 @@ uintptr_t tn_mem_allocate_C(const uint64_t size, const uint64_t HUGEPAGE_SIZE, c
 	uintptr_t addr = (uintptr_t) page;
 	return addr;
 }
+
+void tn_mem_free_C(const uintptr_t addr, const uint64_t HUGEPAGE_SIZE)
+{
+	munmap((void*) addr, (size_t)HUGEPAGE_SIZE);
+}
