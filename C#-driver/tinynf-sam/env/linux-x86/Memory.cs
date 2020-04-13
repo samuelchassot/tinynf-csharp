@@ -106,25 +106,30 @@ namespace Env.linuxx86
             return UIntPtr.Zero;
         }
 
+        [DllImport("FunctionsWrapper.so")]
+        private static extern void tn_mem_free_C(UIntPtr addr, ulong HUGEPAGE_SIZE);
         /// <summary>
         /// Dispose the MemoryMappedFile object's resources
         /// </summary>
         /// <param name="ptr"><param>
         public void TnMemFree(UIntPtr ptr)
         {
-            var mmf = allocatedMMF[ptr];
-            if(mmf != null)
-            {
-                try
-                {
-                    mmf.Dispose();
-                }
-                catch (Exception)
-                {
+            tn_mem_free_C(ptr, HUGEPAGE_SIZE);
 
-                }
-                allocatedMMF.Remove(ptr);
-            }
+            //NOW IT IS USELESS as we call C code to allocate memory
+            //var mmf = allocatedMMF[ptr];
+            //if(mmf != null)
+            //{
+            //    try
+            //    {
+            //        mmf.Dispose();
+            //    }
+            //    catch (Exception)
+            //    {
+
+            //    }
+            //    allocatedMMF.Remove(ptr);
+            //}
             
         }
 
