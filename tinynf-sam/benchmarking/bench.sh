@@ -34,13 +34,13 @@ echo '[bench] Setting up the benchmark...'
 rm -rf results *.log
 
 # Get NF name, as explained in the script header
-# make -C "$NF_DIR" -q print-nf-name >/dev/null 2>&1
-# if [ $? -eq 2 ]; then
-#   NF_NAME=tinynf # no print-nf-name task, use default
-# else
-#   NF_NAME="$(make -C "$NF_DIR" -s print-nf-name)" # -s to not print 'Entering directory...'
-# fi
-NF_NAME=tinynf-sam
+make -C "$NF_DIR" -q print-nf-name >/dev/null 2>&1
+if [ $? -eq 2 ]; then
+  NF_NAME=tinynf-sam # no print-nf-name task, use default
+else
+  NF_NAME="$(make -C "$NF_DIR" -s print-nf-name)" # -s to not print 'Entering directory...'
+fi
+#NF_NAME=tinynf-sam
 
 # Convenience function, now that we know what to clean up
 cleanup() { sudo pkill -x -9 "$NF_NAME" >/dev/null 2>&1; }
@@ -52,28 +52,28 @@ cleanup
 sudo rm -f "$(grep hugetlbfs /proc/mounts  | awk '{print $2}')"/*
 
 # Initialize DPDK if needed, as explained in the script header
-# make -C "$NF_DIR" -q is-dpdk >/dev/null 2>&1
-# if [ $? -eq 2 ]; then
-#   ./setup-dpdk.sh # no args, ensure nothing is on the DPDK driver
-#   # Unbind driver from kernel if needed (the PCI domain is necessary, otherwise we get ENXIO)
-#   for pci in $DUT_DEVS; do
-#     echo -n "0000:$pci" | sudo tee "/sys/bus/pci/devices/0000:$pci/driver/unbind" >/dev/null 2>&1
-#   done
-# else
-#   ./setup-dpdk.sh $DUT_DEVS
-# fi
+make -C "$NF_DIR" -q is-dpdk >/dev/null 2>&1
+if [ $? -eq 2 ]; then
+  ./setup-dpdk.sh # no args, ensure nothing is on the DPDK driver
+  # Unbind driver from kernel if needed (the PCI domain is necessary, otherwise we get ENXIO)
+  for pci in $DUT_DEVS; do
+    echo -n "0000:$pci" | sudo tee "/sys/bus/pci/devices/0000:$pci/driver/unbind" >/dev/null 2>&1
+  done
+else
+  ./setup-dpdk.sh $DUT_DEVS
+fi
 
-# git submodule update --init --recursive
-# if [ $? -ne 0 ]; then
-#   echo '[FATAL] Could not update submodules'
-#   exit 1
-# fi
+git submodule update --init --recursive
+if [ $? -ne 0 ]; then
+  echo '[FATAL] Could not update submodules'
+  exit 1
+fi
 
-# rsync -a -q . "$TESTER_HOST:tinynf-benchmarking"
-# if [ $? -ne 0 ]; then
-#   echo '[FATAL] Could not copy scripts'
-#   exit 1
-# fi
+rsync -a -q . "$TESTER_HOST:tinynf-benchmarking"
+if [ $? -ne 0 ]; then
+  echo '[FATAL] Could not copy scripts'
+  exit 1
+fi
 
 echo '[bench] Building and running the NF...'
 
