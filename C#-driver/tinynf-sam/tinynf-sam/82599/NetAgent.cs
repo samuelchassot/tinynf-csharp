@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Env.linuxx86;
 using Utilities;
 
@@ -248,7 +248,7 @@ namespace tinynf_sam
                 }
 
                 //ring[n * 2u] = packetPhysAddr; IN C CODE
-                *(ring + n * 2u) = (ulong)packetPhysAddr;
+                ring[n * 2u] = (ulong)packetPhysAddr;
             }
 
             // "- Program the descriptor base address with the address of the region (TDBAL, TDBAH)."
