@@ -1,8 +1,6 @@
 # Sam - Semester project - Driver High Level Language
 
 ## TODO
-- [ ] find a way to run it on the right CPU (at least)
-- [ ] find a way to run it using scripts from Solal even without make
 
 ## Observations, notes
 - will need to call libc things, especially to perform syscall or to work on the memory directly. C# can't access hw features so need to pass by C. But don't seem to loose advantages of HL languages, even taking that into account as we have them in other places.
@@ -12,7 +10,6 @@
 - I need to allocate memory using MemoryMappedFile for the *transmitHeads* even if not the case in the C code, because using field doesn't ensure fixed position in memory.
 
 ### Debugging
-- 01.04.2020: numa seems to work, seems to not be able to read pci register, let's try with C code to see where is the problem.
 
 ## Instructions
 - ```make``` the library in *cwrapper* folder
