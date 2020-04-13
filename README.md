@@ -1,4 +1,4 @@
-# Sam - Semester project - Driver High Level Language
+# Sam - Semester project - Driver in High Level Language (C#)
 
 ## TODO
 
