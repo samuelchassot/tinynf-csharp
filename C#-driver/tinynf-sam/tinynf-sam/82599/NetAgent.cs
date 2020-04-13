@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Env.linuxx86;
 using Utilities;
 
@@ -263,7 +263,7 @@ namespace tinynf_sam
             }
 
             IxgbeReg.TDBAH.Write(device.Addr, (uint)((ulong)ringPhysAddr >> 32), idx: queueIndex);
-            IxgbeReg.TDBAL.Write(device.Addr, (uint)((ulong)ringPhysAddr & 0xFFFFFFFFu));
+            IxgbeReg.TDBAL.Write(device.Addr, (uint)((ulong)ringPhysAddr & 0xFFFFFFFFu), idx: queueIndex);
 
 
             // "- Set the length register to the size of the descriptor ring (TDLEN)."
