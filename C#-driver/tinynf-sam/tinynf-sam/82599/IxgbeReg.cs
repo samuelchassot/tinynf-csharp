@@ -459,17 +459,17 @@ namespace tinynf_sam
         {
             uint valLe = *((uint*)((ulong)addr + (ulong)reg));
             var val = Endian.LeToCpu(valLe);
-            log.Verbose(string.Format("Read value {0} from reg {1} at addr {2}", val, reg, addr));
+            //log.Verbose(string.Format("Read value {0} from reg {1} at addr {2}", val, reg, addr));
             return val;
         }
         public static unsafe void WriteRegRaw(UIntPtr regAddr, uint value)
         {
-            log.Verbose(string.Format("Write raw value {0} to regAddr {1}", value, regAddr));
+            //log.Verbose(string.Format("Write raw value {0} to regAddr {1}", value, regAddr));
             *((uint*)regAddr) = Endian.CpuToLe(value);
         }
         public static unsafe void WriteReg(UIntPtr addr, uint reg, uint value)
         {
-            log.Verbose(string.Format("Write value {0} to reg {1} at addr {2}", value, reg, addr));
+            //log.Verbose(string.Format("Write value {0} to reg {1} at addr {2}", value, reg, addr));
             WriteRegRaw((UIntPtr)((ulong)addr + reg), value);
         }
     }

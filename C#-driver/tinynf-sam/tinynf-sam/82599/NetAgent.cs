@@ -328,7 +328,6 @@ namespace tinynf_sam
             // "Note: The tail register of the queue (TDT) should not be bumped until the queue is enabled."
             // Nothing to transmit yet, so leave TDT alone.
             transmitTailAddrs[outputsCount] = (UIntPtr)((ulong)device.Addr + IxgbeReg.TDT.GetAddr(queueIndex));
-            Util.log.Debug("Output set with addr = " + transmitTailAddrs[outputsCount]);
             outputsCount += 1;
             return true;
         }
@@ -343,12 +342,10 @@ namespace tinynf_sam
 
             if ((receiveMetadata & IxgbeConstants.BitNSetLong(32) ) == 0)
             {
-                Util.log.Debug("There was no packet");
                 // No packet; flush if we need to, i.e., 2nd part of the processor
                 // Done here since we must eventually flush after processing a packet even if no more packets are received
                 if (flushedProcessedDelimiter != ulong.MaxValue && flushedProcessedDelimiter != processedDelimiter)
                 {
-                    Util.log.Debug("Flush because no packet received");
                     for (ulong n = 0; n < IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX; n++)
                     {
                         IxgbeRegExtension.WriteRegRaw(transmitTailAddrs[n], (uint)processedDelimiter);
@@ -363,10 +360,7 @@ namespace tinynf_sam
             byte* outPacketAddr = (byte*)buffer + IxgbeConstants.IXGBE_PACKET_BUFFER_SIZE * processedDelimiter;
             // "Length Field (16-bit offset 0, 2nd line): The length indicated in this field covers the data written to a receive buffer."
             int outPacketLength = (int)(receiveMetadata & 0xFFu);
-
-            Util.log.Debug("There was a packet of length : " + outPacketLength);
             // Note that the out_ parameters have no meaning if this is false, but it's fine, their value will still make sense
-
             return (true, outPacketLength, (UIntPtr)outPacketAddr);
         }
 
@@ -413,15 +407,10 @@ namespace tinynf_sam
 
             // Increment the processed delimiter, modulo the ring size
             processedDelimiter = (processedDelimiter + 1u) & (IxgbeConstants.IXGBE_RING_SIZE - 1);
-            Util.log.Debug("processedDelimiter = " + processedDelimiter);
-            Util.log.Debug("flushedProcessedDelimiter = " + flushedProcessedDelimiter);
-
-
             // Flush if we need to, i.e., 2nd part of the processor
             // Done here so that latency is minimal in low-load cases
             if ((flushedProcessedDelimiter == ulong.MaxValue) || (processedDelimiter == ((flushedProcessedDelimiter + IxgbeConstants.IXGBE_AGENT_PROCESS_PERIOD) & (IxgbeConstants.IXGBE_RING_SIZE - 1))))
             {
-                Util.log.Debug("Flush:");
                 for (ulong n = 0; n < IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX; n++)
                 {
                     IxgbeRegExtension.WriteRegRaw(transmitTailAddrs[n], (uint)processedDelimiter);
