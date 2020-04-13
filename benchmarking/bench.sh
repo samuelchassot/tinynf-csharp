@@ -94,8 +94,13 @@ trap 'trap_cleanup' 2
 
 # TN_ARGS="$DUT_DEVS" taskset -c "$DUT_CPU" make -C "$NF_DIR" run >>"$LOG_FILE" 2>&1 &
 
+#Build the code
+cd "$NF_DIR"
+./build.sh >>"$LOG_FILE"
+cd -
+
 # ACTUAL RUN
-sudo taskset -c "$DUT_CPU" "$NF_DIR/$NF_NAME" $DUT_DEVS >>"$LOG_FILE" 2>&1 &
+sudo taskset -c "$DUT_CPU" "$NF_DIR/build/$NF_NAME" $DUT_DEVS >>"$LOG_FILE" 2>&1 &
 echo $DUT_DEVS
 # Sleep (as little as possible) if the NF needs a while to start
 for i in $(seq 1 30); do
