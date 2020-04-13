@@ -1,4 +1,3 @@
-git pull
 cd tinynf-sam
 dotnet build --runtime linux-x64
 cd ..
