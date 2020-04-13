@@ -16,6 +16,7 @@ namespace tinynf_sam
         /// <param name="args"></param>
         unsafe static int Main(string[] args)
         {
+            Util.log.Debug("Enter program.cs: UIntPtr.size = " + UIntPtr.Size);
             ulong devicesCount = (ulong)args.Length;
             PCIDevice[] pCIDevices = new PCIDevice[2];
             if (devicesCount != 2)
