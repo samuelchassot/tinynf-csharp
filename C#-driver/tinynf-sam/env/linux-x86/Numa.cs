@@ -22,7 +22,7 @@ namespace Env.linuxx86
                 Util.log.Debug("NumaIsCurrentNode: cannot getCpu");
                 return false;
             }
-            Util.log.Debug("NUMA: NumaIsCurrentNode:  this_node = " + thisNode + "    node in argument = " + node);
+            //Util.log.Debug("NUMA: NumaIsCurrentNode:  this_node = " + thisNode + "    node in argument = " + node);
             return thisNode == (uint)node;
         }
         public unsafe static (bool, ulong) TnNumaGetAddrNode(UIntPtr addr)

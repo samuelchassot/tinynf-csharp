@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Env.linuxx86;
 using Utilities;
 
@@ -335,34 +335,27 @@ namespace tinynf_sam
 
         public (bool ok, int packetLength, UIntPtr packetAddr) Receive()
         {
-            Util.log.Debug("Enter Receive in agent");
             // Since descriptors are 16 bytes, the index must be doubled
             ulong* mainMetadataAddr = (ulong*)rings[0] + 2u * processedDelimiter + 1;
-            Util.log.Debug("Metadata address = " + (UIntPtr)mainMetadataAddr);
-            Util.log.Debug("Processed delimiter = " + (ulong)processedDelimiter);
-            Util.log.Debug("rings[0] = " + rings[0]);
-
             ulong receiveMetadata = *mainMetadataAddr;
-
-            //receiveMetadata = Endian.ReverseBytes(receiveMetadata);
-
-            Util.log.Debug("Metadata = " + Convert.ToString((long)receiveMetadata, 2));
             // Section 7.1.5 Legacy Receive Descriptor Format:
             // "Status Field (8-bit offset 32, 2nd line)": Bit 0 = DD, "Descriptor Done."
 
             if ((receiveMetadata & IxgbeConstants.BitNSetLong(32) ) == 0)
             {
+                Util.log.Debug("There was no packet");
                 // No packet; flush if we need to, i.e., 2nd part of the processor
                 // Done here since we must eventually flush after processing a packet even if no more packets are received
-                if(flushedProcessedDelimiter != ulong.MaxValue && flushedProcessedDelimiter != processedDelimiter)
+                if (flushedProcessedDelimiter != ulong.MaxValue && flushedProcessedDelimiter != processedDelimiter)
                 {
-                    for(ulong n = 0; n < IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX; n++)
+                    Util.log.Debug("Flush because no packet received");
+                    for (ulong n = 0; n < IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX; n++)
                     {
                         IxgbeRegExtension.WriteRegRaw(transmitTailAddrs[n], (uint)processedDelimiter);
                     }
                 }
                 // Record that there was no packet
-                Util.log.Debug("There was no packet");
+                
                 flushedProcessedDelimiter = ulong.MaxValue;
                 return (false, -1, (UIntPtr)0);
             }
@@ -414,18 +407,22 @@ namespace tinynf_sam
             ulong rsBit = (ulong)((processedDelimiter & (IxgbeConstants.IXGBE_AGENT_TRANSMIT_PERIOD - 1)) == (IxgbeConstants.IXGBE_AGENT_TRANSMIT_PERIOD - 1) ? 1 : 0) << (24 + 3);
             for (ulong n = 0; n < IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX; n++)
             { 
-                *(ulong*)(UIntPtr)((ulong)rings[n] + 2u * processedDelimiter + 1) =
+                *((ulong*)rings[n] + 2u * processedDelimiter + 1) =
                     ((outputs[n] ? 1u : 0u) * (ulong)packetLength) | rsBit | IxgbeConstants.BitNSetLong(24 + 1) | IxgbeConstants.BitNSetLong(24);
             }
 
             // Increment the processed delimiter, modulo the ring size
             processedDelimiter = (processedDelimiter + 1u) & (IxgbeConstants.IXGBE_RING_SIZE - 1);
+            Util.log.Debug("processedDelimiter = " + processedDelimiter);
+            Util.log.Debug("flushedProcessedDelimiter = " + flushedProcessedDelimiter);
+
 
             // Flush if we need to, i.e., 2nd part of the processor
             // Done here so that latency is minimal in low-load cases
-            if((flushedProcessedDelimiter == ulong.MaxValue) || (processedDelimiter == ((flushedProcessedDelimiter + IxgbeConstants.IXGBE_AGENT_PROCESS_PERIOD) & (IxgbeConstants.IXGBE_RING_SIZE - 1))))
+            if ((flushedProcessedDelimiter == ulong.MaxValue) || (processedDelimiter == ((flushedProcessedDelimiter + IxgbeConstants.IXGBE_AGENT_PROCESS_PERIOD) & (IxgbeConstants.IXGBE_RING_SIZE - 1))))
             {
-                for(ulong n = 0; n < IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX; n++)
+                Util.log.Debug("Flush:");
+                for (ulong n = 0; n < IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX; n++)
                 {
                     IxgbeRegExtension.WriteRegRaw(transmitTailAddrs[n], (uint)processedDelimiter);
                 }
