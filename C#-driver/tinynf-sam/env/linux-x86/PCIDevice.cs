@@ -113,7 +113,7 @@ namespace Env.linuxx86
                     {
                         PciAddress(reg);
                         uint result = inlCustom(PCI_CONFIG_DATA);
-                        Util.log.Verbose(string.Format("Read PCI : from reg {0} = {1}", reg, result));
+                        Util.log.Verbose(string.Format("Read PCI : from reg {0} -> {1}", reg, result));
                         return result;
                     }
                 }
@@ -132,7 +132,7 @@ namespace Env.linuxx86
                     {
                         PciAddress(reg);
                         outlCustom(value, PCI_CONFIG_DATA);
-                        Util.log.Verbose(string.Format("Write PCI : to reg {0} = {1}", reg, value));
+                        Util.log.Verbose(string.Format("Write PCI : to reg {0} := {1}", reg, value));
                     }
                 }
             }
