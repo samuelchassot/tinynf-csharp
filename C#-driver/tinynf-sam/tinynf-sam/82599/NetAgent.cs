@@ -185,7 +185,7 @@ namespace tinynf_sam
             IxgbeReg.DCARXCTRL.Set(device.Addr, IxgbeRegField.DCARXCTRL_UNKNOWN, idx: queueIndex);
 
 
-            this.receiveTailAddr = (UIntPtr)((ulong)device.Addr + IxgbeReg.RDT.Read(device.Addr, idx: queueIndex));
+            this.receiveTailAddr = (UIntPtr)((ulong)device.Addr + IxgbeReg.RDT.GetAddr(queueIndex));
             return true;
         }
 
@@ -319,16 +319,26 @@ namespace tinynf_sam
             }
             // "Note: The tail register of the queue (TDT) should not be bumped until the queue is enabled."
             // Nothing to transmit yet, so leave TDT alone.
-            transmitTailAddrs[outputsCount] = (UIntPtr)((ulong)device.Addr + IxgbeReg.TDT.Read(device.Addr, idx: queueIndex));
+            transmitTailAddrs[outputsCount] = (UIntPtr)((ulong)device.Addr + IxgbeReg.TDT.GetAddr(queueIndex));
+            Util.log.Debug("Output set with addr = " + transmitTailAddrs[outputsCount]);
             outputsCount += 1;
             return true;
         }
 
         public (bool ok, int packetLength, UIntPtr packetAddr) Receive()
         {
+            Util.log.Debug("Enter Receive in agent");
             // Since descriptors are 16 bytes, the index must be doubled
-            ulong* mainMetadataAddr = (ulong*)(UIntPtr)((ulong)rings[0] + 2u * processedDelimiter + 1);
+            ulong* mainMetadataAddr = (ulong*)rings[0] + 2u * processedDelimiter + 1;
+            Util.log.Debug("Metadata address = " + (UIntPtr)mainMetadataAddr);
+            Util.log.Debug("Processed delimiter = " + (ulong)processedDelimiter);
+            Util.log.Debug("rings[0] = " + rings[0]);
+
             ulong receiveMetadata = *mainMetadataAddr;
+
+            //receiveMetadata = Endian.ReverseBytes(receiveMetadata);
+
+            Util.log.Debug("Metadata = " + Convert.ToString((long)receiveMetadata, 2));
             // Section 7.1.5 Legacy Receive Descriptor Format:
             // "Status Field (8-bit offset 32, 2nd line)": Bit 0 = DD, "Descriptor Done."
 
