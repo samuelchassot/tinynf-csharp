@@ -100,7 +100,6 @@ namespace tinynf_sam
 
         public static uint Read(this PciReg reg, PCIDevice pciDevice)
         {
-            Util.log.Debug(string.Format("read pci reg at addr : {0:X}", reg.GetAddr()));
             return pciDevice.PciRead(reg.GetAddr());
         }
 
