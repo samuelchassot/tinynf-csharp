@@ -16,6 +16,7 @@ namespace tinynf_sam
         /// <param name="args"></param>
         unsafe static int Main(string[] args)
         {
+            Util.log.Debug("Enter program.cs: UIntPtr.size = " + UIntPtr.Size);
             ulong devicesCount = (ulong)args.Length;
             PCIDevice[] pCIDevices = new PCIDevice[2];
             if (devicesCount != 2)
@@ -65,6 +66,7 @@ namespace tinynf_sam
                     Util.log.Info("cannot set input of netAgent n° " + n);
                     return 5 + 100 * n;
                 }
+                Util.log.Info("Initialized agent : " + n);
             }
 
             for (int n = 0; n < (int)devicesCount; n++)

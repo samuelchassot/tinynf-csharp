@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using Utilities;
 
 namespace Env.linuxx86
 {
@@ -15,12 +16,14 @@ namespace Env.linuxx86
 
         public unsafe static bool TnNumaIsCurrentNode(UInt64 node)
         {
-            uint this_node = uint.MaxValue;
-            if(getcpu(null, &this_node) != 0)
+            uint thisNode = uint.MaxValue;
+            if(getcpu(null, &thisNode) != 0)
             {
+                Util.log.Debug("NumaIsCurrentNode: cannot getCpu");
                 return false;
             }
-            return this_node == (uint)node;
+            //Util.log.Debug("NUMA: NumaIsCurrentNode:  this_node = " + thisNode + "    node in argument = " + node);
+            return thisNode == (uint)node;
         }
         public unsafe static (bool, ulong) TnNumaGetAddrNode(UIntPtr addr)
         {

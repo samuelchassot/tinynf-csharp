@@ -8,6 +8,10 @@
 #include <stdint.h>
 #include <sys/io.h>
 
+#ifndef MAP_HUGE_SHIFT
+#define MAP_HUGE_SHIFT 26
+#endif
+
 //Most of the functions here are just wrapped because they cannot be called from C# directly
 
 long get_mempolicy(int *mode, unsigned long *nodemask,
@@ -45,6 +49,32 @@ uintptr_t virt_to_phys_mem(uintptr_t addr, unsigned long size){
     return (uintptr_t) mapped;
 }
 
+int mem_virt_to_phys(const uintptr_t page, const uintptr_t map_offset, uint64_t* outMetadata)
+{
+
+	const int map_fd = open("/proc/self/pagemap", O_RDONLY);
+	if (map_fd < 0) {
+		//TN_DEBUG("Could not open the pagemap");
+		return 1;
+	}
+
+	if (lseek(map_fd, (off_t) map_offset, SEEK_SET) == (off_t) -1) {
+		//TN_DEBUG("Could not seek the pagemap");
+		close(map_fd);
+		return 2;
+	}
+
+	uint64_t metadata;
+	const ssize_t read_result = read(map_fd, &metadata, sizeof(uint64_t));
+	close(map_fd);
+	if (read_result != sizeof(uint64_t)) {
+		//TN_DEBUG("Could not read the pagemap");
+		return 3;
+	}
+	*outMetadata = metadata;
+	return 0;
+}
+
 //need to define them like that because they are defined as macros so cannot be called directly from C#
 void outlCustom(unsigned int value, unsigned short int port){
     outl(value, port);
@@ -60,4 +90,38 @@ unsigned int inlCustom(unsigned short int port){
 
 int numberOfTrailingZeros(unsigned long n){
     return __builtin_ctzll(n);
+}
+
+//FOR NOW ONLY FOR DEBUGGING
+uintptr_t tn_mem_allocate_C(const uint64_t size, const uint64_t HUGEPAGE_SIZE, const int HUGEPAGE_SIZE_POWER)
+{
+	// http://man7.org/linux/man-pages//man2/munmap.2.html
+	void* page = mmap(
+		// No specific address
+		NULL,
+		// Size of the mapping
+		(size_t)HUGEPAGE_SIZE,
+		// R/W page
+		PROT_READ | PROT_WRITE,
+		// Hugepage, not backed by a file (and thus zero-initialized); note that without MAP_SHARED the call fails
+		// MAP_POPULATE means the page table will be populated already (without the need for a page fault later),
+		// which is required if the calling code tries to get the physical address of the page without accessing it first.
+		MAP_HUGETLB | (HUGEPAGE_SIZE_POWER << MAP_HUGE_SHIFT) | MAP_ANONYMOUS | MAP_SHARED | MAP_POPULATE,
+		// Required on MAP_ANONYMOUS
+		-1,
+		// Required on MAP_ANONYMOUS
+		0
+	);
+	if (page == MAP_FAILED) {
+		//TN_DEBUG("Allocate mmap failed");
+		return 0;
+	}
+
+	uintptr_t addr = (uintptr_t) page;
+	return addr;
+}
+
+void tn_mem_free_C(const uintptr_t addr, const uint64_t HUGEPAGE_SIZE)
+{
+	munmap((void*) addr, (size_t)HUGEPAGE_SIZE);
 }

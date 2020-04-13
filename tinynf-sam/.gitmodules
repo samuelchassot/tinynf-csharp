@@ -1,0 +1,9 @@
+[submodule "baselines/moongen"]
+	path = baselines/moongen
+	url = https://github.com/emmericp/MoonGen
+[submodule "baselines/vigor/vigor"]
+	path = baselines/vigor/vigor
+	url = https://github.com/vigor-nf/vigor
+[submodule "baselines/click/click"]
+	path = baselines/click/click
+	url = https://github.com/kohler/click

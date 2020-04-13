@@ -432,7 +432,7 @@ namespace tinynf_sam
                 uint fieldValue = field.GetValue();
                 valueToWrite = (Read(reg, addr, field, idx) & ~fieldValue) | ((value << numberOfTrailingZeros(fieldValue)) & fieldValue);
             }
-            WriteReg(addr, reg.GetAddr(), valueToWrite);
+            WriteReg(addr, reg.GetAddr(idx), valueToWrite);
         }
 
         public static void Clear(this IxgbeReg reg, UIntPtr addr, IxgbeRegField field = IxgbeRegField.NONE, int idx = -1)
@@ -442,7 +442,7 @@ namespace tinynf_sam
             {
                 valueToWrite = Read(reg, addr, IxgbeRegField.NONE, idx) & ~field.GetValue();
             }
-            WriteReg(addr, reg.GetAddr(), valueToWrite);
+            WriteReg(addr, reg.GetAddr(idx), valueToWrite);
         }
 
         public static bool Cleared(this IxgbeReg reg, UIntPtr addr, IxgbeRegField field = IxgbeRegField.NONE, int idx = -1)
@@ -464,7 +464,7 @@ namespace tinynf_sam
         }
         public static unsafe void WriteRegRaw(UIntPtr regAddr, uint value)
         {
-            log.Verbose(string.Format("Write raw value {0} to regAddr", value, regAddr));
+            log.Verbose(string.Format("Write raw value {0} to regAddr {1}", value, regAddr));
             *((uint*)regAddr) = Endian.CpuToLe(value);
         }
         public static unsafe void WriteReg(UIntPtr addr, uint reg, uint value)

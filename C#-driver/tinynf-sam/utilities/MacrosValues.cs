@@ -18,11 +18,11 @@ namespace Utilities
     public static class EnumExtensions
     {
         [DllImport(@"MacrosCstVal.so")]
-        private static extern int GetSystemCstValues(int id);
+        private static extern int getSystemCstValues(int id);
 
         public static int GetValue(this MacrosValues val)
         {
-            return GetSystemCstValues((int)val);
+            return getSystemCstValues((int)val);
         }
     }
 }

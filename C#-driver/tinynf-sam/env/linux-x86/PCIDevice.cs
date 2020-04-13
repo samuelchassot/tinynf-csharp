@@ -44,6 +44,16 @@ namespace Env.linuxx86
 
             if (ioperm(0x80, 1, 1) < 0 || ioperm(PCI_CONFIG_ADDR, 4, 1) < 0 || ioperm(PCI_CONFIG_DATA, 4, 1) < 0)
             {
+                //DEBUG -- BEGIN
+                int i1 = ioperm(0x80, 1, 1);
+                int i2 = ioperm(PCI_CONFIG_ADDR, 4, 1);
+                int i3 = ioperm(PCI_CONFIG_DATA, 4, 1);
+                Util.log.Debug("ioperm(0x80, 1, 1) = " + i1);
+                Util.log.Debug("ioperm(PCI_CONFIG_ADDR, 4, 1) = " + i2);
+                Util.log.Debug("ioperm(PCI_CONFIG_DATA, 4, 1) = " + i3);
+
+
+                //DEBUG -- END
                 Util.log.Debug("PCIDevice: PCI device is not what was expected ioperms pci failed");
                 return false;
             }
@@ -95,15 +105,15 @@ namespace Env.linuxx86
         public uint PciRead(byte reg)
         {
             if (GetIoportAccess())
-            {
+            {       
                 ulong deviceNode = GetDeviceNode();
                 if (deviceNode != ulong.MaxValue)
-                {
+                {       
                     if (Numa.TnNumaIsCurrentNode(deviceNode))
                     {
                         PciAddress(reg);
                         uint result = inlCustom(PCI_CONFIG_DATA);
-                        Util.log.Verbose(string.Format("Read PCI : from reg {0} = {1}", reg, result));
+                        Util.log.Verbose(string.Format("Read PCI : from reg {0} -> {1}", reg, result));
                         return result;
                     }
                 }
@@ -122,7 +132,7 @@ namespace Env.linuxx86
                     {
                         PciAddress(reg);
                         outlCustom(value, PCI_CONFIG_DATA);
-                        Util.log.Verbose(string.Format("Write PCI : to reg {0} = {1}", reg, value));
+                        Util.log.Verbose(string.Format("Write PCI : to reg {0} := {1}", reg, value));
                     }
                 }
             }

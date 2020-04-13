@@ -2,6 +2,9 @@ linux-x64/
 
 Solal_part/
 
+tinynf-sam/code/*
+tinynf-sam\ backup
+
 **/.vscode/*
 *.so
 

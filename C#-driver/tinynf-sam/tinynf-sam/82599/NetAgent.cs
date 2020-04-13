@@ -15,7 +15,7 @@ namespace tinynf_sam
         private ulong processedDelimiter;
         private ulong outputsCount;
         private ulong flushedProcessedDelimiter; // -1 if there was no packet last time, otherwise last flushed processed_delimiter
-        private byte[] padding;
+        private UIntPtr padding;
         // transmit heads must be 16-byte aligned; see alignment remarks in transmit queue setup
         // (there is also a runtime check to make sure the array itself is aligned properly)
         // plus, we want each head on its own cache line to avoid conflicts
@@ -24,7 +24,7 @@ namespace tinynf_sam
 
         //transmitHeadsPtr here is the ptr pointing at the beginning of an allocated part of the memory of the size
         // IXGBE_AGENT_OUTPUTS_MAX * TRANSMIT_HEAD_MULTIPLIER
-        private UIntPtr transmitHeadsPtr; // size = IXGBE_AGENT_OUTPUTS_MAX * TRANSMIT_HEAD_MULTIPLIER
+        private volatile UIntPtr transmitHeadsPtr; // size = IXGBE_AGENT_OUTPUTS_MAX * TRANSMIT_HEAD_MULTIPLIER
         private volatile UIntPtr[] rings; // 0 == shared receive/transmit, rest are exclusive transmit, size = IXGBE_AGENT_OUTPUTS_MAX
         private UIntPtr[] transmitTailAddrs;
 
@@ -37,7 +37,12 @@ namespace tinynf_sam
         public NetAgent(Memory mem)
         {
             receiveTailAddr = UIntPtr.Zero;
-            padding = new byte[3 * 8];
+            padding = mem.TnMemAllocate(3*8);
+            if(padding == UIntPtr.Zero)
+            {
+                Util.log.Debug("Cannot allocate mempory for the padding");
+                throw new MemoryAllocationErrorException();
+            }
             transmitTailAddrs = new UIntPtr[(int)IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX];
             rings = new UIntPtr[IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX];
             processedDelimiter = 0;
@@ -74,7 +79,7 @@ namespace tinynf_sam
                 this.rings[n] = ringAddr;
 
                 // initialize to uintptr.zero
-                this.transmitTailAddrs[n] = UIntPtr.Zero;//(UIntPtr)(&padding[0]);
+                this.transmitTailAddrs[n] = padding;
             }
 
             // Start in "no packet" state
@@ -87,7 +92,7 @@ namespace tinynf_sam
         public ulong Processed_delimiter { get => processedDelimiter; private set => processedDelimiter = value; }
         public ulong Outputs_count { get => outputsCount; private set => outputsCount = value; }
         public ulong Flushed_processed_delimiter { get => flushedProcessedDelimiter; private set => flushedProcessedDelimiter = value; }
-        public byte[] Padding { get => padding; private set => padding = value; }
+        public UIntPtr Padding { get => padding; private set => padding = value; }
 
         public bool SetInput(Memory mem, NetDevice device)
         {
@@ -100,7 +105,7 @@ namespace tinynf_sam
             ushort queueIndex = 0;
 
             // See later for details of RXDCTL.ENABLE
-            if (IxgbeReg.RXDCTL.Cleared(device.Addr, IxgbeRegField.RXDCTL_ENABLE, queueIndex))
+            if (!IxgbeReg.RXDCTL.Cleared(device.Addr, IxgbeRegField.RXDCTL_ENABLE, queueIndex))
             {
                 Util.log.Debug("Receive queue is already in use");
                 return false;
@@ -124,6 +129,9 @@ namespace tinynf_sam
                 Util.log.Debug("Could not get phys addr of main ring");
                 return false;
             }
+
+            Util.log.Debug("For agent with rings[0] = " + rings[0] + " , the phys addr of the rings[0] is " + ringPhysAddr);
+
             IxgbeReg.RDBAH.Write(device.Addr, (uint)((ulong)ringPhysAddr >> 32), idx: queueIndex);
             IxgbeReg.RDBAL.Write(device.Addr, (uint)((ulong)ringPhysAddr & 0xFFFFFFFFu), idx: queueIndex);
             // "- Set the length register to the size of the descriptor ring (register RDLEN)."
@@ -150,7 +158,7 @@ namespace tinynf_sam
             IxgbeReg.RXDCTL.Set(device.Addr, IxgbeRegField.RXDCTL_ENABLE, queueIndex);
             // "- Poll the RXDCTL register until the Enable bit is set. The tail should not be bumped before this bit was read as 1b."
             // INTERPRETATION-MISSING: No timeout is mentioned here, let's say 1s to be safe.
-            if (IxgbeConstants.TimeoutCondition(1000 * 1000, IxgbeReg.RXDCTL.Cleared(device.Addr, IxgbeRegField.RXDCTL_ENABLE, queueIndex)))
+            if (IxgbeConstants.TimeoutCondition(1000 * 1000, () => IxgbeReg.RXDCTL.Cleared(device.Addr, IxgbeRegField.RXDCTL_ENABLE, queueIndex)))
             {
                 Util.log.Debug("RXDCTL.ENABLE did not set, cannot enable queue");
                 return false;
@@ -165,7 +173,7 @@ namespace tinynf_sam
             IxgbeReg.SECRXCTRL.Set(device.Addr, IxgbeRegField.SECRXCTRL_RX_DIS);
             //	"- Wait for the data paths to be emptied by HW. Poll the SECRXSTAT.SECRX_RDY bit until it is asserted by HW."
             // INTERPRETATION-MISSING: Another undefined timeout, assuming 1s as usual
-            if (IxgbeConstants.TimeoutCondition(1000 * 1000, IxgbeReg.SECRXSTAT.Cleared(device.Addr, IxgbeRegField.SECRXSTAT_SECRX_RDY)))
+            if (IxgbeConstants.TimeoutCondition(1000 * 1000, () => IxgbeReg.SECRXSTAT.Cleared(device.Addr, IxgbeRegField.SECRXSTAT_SECRX_RDY)))
             {
                 Util.log.Debug("SECRXSTAT.SECRXRDY timed out, cannot enable queue");
                 return false;
@@ -185,7 +193,7 @@ namespace tinynf_sam
             IxgbeReg.DCARXCTRL.Set(device.Addr, IxgbeRegField.DCARXCTRL_UNKNOWN, idx: queueIndex);
 
 
-            this.receiveTailAddr = (UIntPtr)((ulong)device.Addr + IxgbeReg.RDT.Read(device.Addr, idx: queueIndex));
+            this.receiveTailAddr = (UIntPtr)((ulong)device.Addr + IxgbeReg.RDT.GetAddr(queueIndex));
             return true;
         }
 
@@ -194,7 +202,7 @@ namespace tinynf_sam
             ulong outputsCountLocalVar = 0;
             for(; outputsCountLocalVar < IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX; outputsCountLocalVar++)
             {
-                if(this.transmitTailAddrs[outputsCountLocalVar] == UIntPtr.Zero)
+                if(this.transmitTailAddrs[outputsCountLocalVar] == padding)
                 {
                     break;
                 }
@@ -224,7 +232,7 @@ namespace tinynf_sam
             // "The following steps should be done once per transmit queue:"
             // "- Allocate a region of memory for the transmit descriptor list."
             // This is already done in agent initialization as agent->rings[*]
-            ulong* ring = (ulong*)this.rings[outputsCount]; // was volatile in C code but in C#, cannot make pointer to volatile value
+            ulong* ring = (ulong*)this.rings[outputsCount];  // was volatile in C code but in C#, cannot make pointer to volatile value
 
             // Program all descriptors' buffer address now
             // n was a uintptr_t in C, I use ulong to be sure
@@ -240,7 +248,7 @@ namespace tinynf_sam
                 }
 
                 //ring[n * 2u] = packetPhysAddr; IN C CODE
-                *(ring + n * 2u) = (ulong)packetPhysAddr;
+                ring[n * 2u] = (ulong)packetPhysAddr;
             }
 
             // "- Program the descriptor base address with the address of the region (TDBAL, TDBAH)."
@@ -255,7 +263,7 @@ namespace tinynf_sam
             }
 
             IxgbeReg.TDBAH.Write(device.Addr, (uint)((ulong)ringPhysAddr >> 32), idx: queueIndex);
-            IxgbeReg.TDBAL.Write(device.Addr, (uint)((ulong)ringPhysAddr & 0xFFFFFFFFu));
+            IxgbeReg.TDBAL.Write(device.Addr, (uint)((ulong)ringPhysAddr & 0xFFFFFFFFu), idx: queueIndex);
 
 
             // "- Set the length register to the size of the descriptor ring (TDLEN)."
@@ -312,14 +320,15 @@ namespace tinynf_sam
             // INTERPRETATION-MISSING: No timeout is mentioned here, let's say 1s to be safe.
             IxgbeReg.TXDCTL.Set(device.Addr, IxgbeRegField.TXDCTL_ENABLE, queueIndex);
 
-            if(IxgbeConstants.TimeoutCondition(1000*1000, IxgbeReg.TXDCTL.Cleared(device.Addr, IxgbeRegField.TXDCTL_ENABLE, queueIndex)))
+            if(IxgbeConstants.TimeoutCondition(1000*1000, () => IxgbeReg.TXDCTL.Cleared(device.Addr, IxgbeRegField.TXDCTL_ENABLE, queueIndex)))
             {
                 Util.log.Debug("TXDCTL.ENABLE did not set, cannot enable queue");
                 return false;
             }
             // "Note: The tail register of the queue (TDT) should not be bumped until the queue is enabled."
             // Nothing to transmit yet, so leave TDT alone.
-            transmitTailAddrs[outputsCount] = (UIntPtr)((ulong)device.Addr + IxgbeReg.TDT.Read(device.Addr, idx: queueIndex));
+            transmitTailAddrs[outputsCount] = (UIntPtr)((ulong)device.Addr + IxgbeReg.TDT.GetAddr(queueIndex));
+            Util.log.Debug("Output set with addr = " + transmitTailAddrs[outputsCount]);
             outputsCount += 1;
             return true;
         }
@@ -327,18 +336,20 @@ namespace tinynf_sam
         public (bool ok, int packetLength, UIntPtr packetAddr) Receive()
         {
             // Since descriptors are 16 bytes, the index must be doubled
-            ulong* mainMetadataAddr = (ulong*)(UIntPtr)((ulong)rings[0] + 2u * processedDelimiter + 1);
+            ulong* mainMetadataAddr = (ulong*)rings[0] + 2u * processedDelimiter + 1;
             ulong receiveMetadata = *mainMetadataAddr;
             // Section 7.1.5 Legacy Receive Descriptor Format:
             // "Status Field (8-bit offset 32, 2nd line)": Bit 0 = DD, "Descriptor Done."
 
             if ((receiveMetadata & IxgbeConstants.BitNSetLong(32) ) == 0)
             {
+                Util.log.Debug("There was no packet");
                 // No packet; flush if we need to, i.e., 2nd part of the processor
                 // Done here since we must eventually flush after processing a packet even if no more packets are received
-                if(flushedProcessedDelimiter != ulong.MaxValue && flushedProcessedDelimiter != processedDelimiter)
+                if (flushedProcessedDelimiter != ulong.MaxValue && flushedProcessedDelimiter != processedDelimiter)
                 {
-                    for(ulong n = 0; n < IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX; n++)
+                    Util.log.Debug("Flush because no packet received");
+                    for (ulong n = 0; n < IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX; n++)
                     {
                         IxgbeRegExtension.WriteRegRaw(transmitTailAddrs[n], (uint)processedDelimiter);
                     }
@@ -348,13 +359,14 @@ namespace tinynf_sam
                 flushedProcessedDelimiter = ulong.MaxValue;
                 return (false, -1, (UIntPtr)0);
             }
-
             // This cannot overflow because the packet is by definition in an allocated block of memory
             byte* outPacketAddr = (byte*)buffer + IxgbeConstants.IXGBE_PACKET_BUFFER_SIZE * processedDelimiter;
             // "Length Field (16-bit offset 0, 2nd line): The length indicated in this field covers the data written to a receive buffer."
             int outPacketLength = (int)(receiveMetadata & 0xFFu);
 
+            Util.log.Debug("There was a packet of length : " + outPacketLength);
             // Note that the out_ parameters have no meaning if this is false, but it's fine, their value will still make sense
+
             return (true, outPacketLength, (UIntPtr)outPacketAddr);
         }
 
@@ -395,18 +407,22 @@ namespace tinynf_sam
             ulong rsBit = (ulong)((processedDelimiter & (IxgbeConstants.IXGBE_AGENT_TRANSMIT_PERIOD - 1)) == (IxgbeConstants.IXGBE_AGENT_TRANSMIT_PERIOD - 1) ? 1 : 0) << (24 + 3);
             for (ulong n = 0; n < IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX; n++)
             { 
-                *(ulong*)(UIntPtr)((ulong)rings[n] + 2u * processedDelimiter + 1) =
+                *((ulong*)rings[n] + 2u * processedDelimiter + 1) =
                     ((outputs[n] ? 1u : 0u) * (ulong)packetLength) | rsBit | IxgbeConstants.BitNSetLong(24 + 1) | IxgbeConstants.BitNSetLong(24);
             }
 
             // Increment the processed delimiter, modulo the ring size
             processedDelimiter = (processedDelimiter + 1u) & (IxgbeConstants.IXGBE_RING_SIZE - 1);
+            Util.log.Debug("processedDelimiter = " + processedDelimiter);
+            Util.log.Debug("flushedProcessedDelimiter = " + flushedProcessedDelimiter);
+
 
             // Flush if we need to, i.e., 2nd part of the processor
             // Done here so that latency is minimal in low-load cases
-            if((flushedProcessedDelimiter == ulong.MaxValue) || (processedDelimiter == ((flushedProcessedDelimiter + IxgbeConstants.IXGBE_AGENT_PROCESS_PERIOD) & (IxgbeConstants.IXGBE_RING_SIZE - 1))))
+            if ((flushedProcessedDelimiter == ulong.MaxValue) || (processedDelimiter == ((flushedProcessedDelimiter + IxgbeConstants.IXGBE_AGENT_PROCESS_PERIOD) & (IxgbeConstants.IXGBE_RING_SIZE - 1))))
             {
-                for(ulong n = 0; n < IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX; n++)
+                Util.log.Debug("Flush:");
+                for (ulong n = 0; n < IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX; n++)
                 {
                     IxgbeRegExtension.WriteRegRaw(transmitTailAddrs[n], (uint)processedDelimiter);
                 }
