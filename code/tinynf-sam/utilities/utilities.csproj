@@ -4,7 +4,13 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>Utilities</RootNamespace>
   </PropertyGroup>
-
+  
+    <!--  Disable tiered compilation and quick JIT  -->
+    <PropertyGroup>
+      <TieredCompilation>false</TieredCompilation>
+      <TieredCompilationQuickJit>false</TieredCompilationQuickJit>
+    </PropertyGroup>
+    
   <ItemGroup>
     <Compile Remove="Class1.cs" />
   </ItemGroup>
