@@ -1,6 +1,7 @@
 **/code/build
 
 Solal_part/
+ignored/
 
 **/.vscode/*
 *.so

@@ -408,14 +408,7 @@ namespace tinynf_sam
             // Thus we need to set TXPBTHRESH[0] but not TXPBTHRESH[1-7].
 
 
-            //----------------------------------------------------------------------------------------------------------------------------------------------------------
-            // SAM modified
-
-            // MODIFICATION BECAUSE OVERFLOW (MAYBE WILL CRASH)
-            // we want to write 0xA0u - IxgbeConstants.IXGBE_PACKET_BUFFER_SIZE = 0xA0u - 2*1024u which overflows so replaced by
-            // uint.MAXVALUE - 2048u + 0xA0u + 1
-            IxgbeReg.TXPBTHRESH.Write(newDevice.Addr, uint.MaxValue - IxgbeConstants.IXGBE_PACKET_BUFFER_SIZE + 0xA0u + 1u, IxgbeRegField.TXPBTHRESH_THRESH, idx: 0);
-            //----------------------------------------------------------------------------------------------------------------------------------------------------------
+            IxgbeReg.TXPBTHRESH.Write(newDevice.Addr, 0xA0u - (IxgbeConstants.IXGBE_PACKET_BUFFER_SIZE / 1024u), IxgbeRegField.TXPBTHRESH_THRESH, idx: 0);
 
 
             //		"- MTQC"
