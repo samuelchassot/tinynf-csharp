@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using Env.linuxx86;
 using Utilities;
 
@@ -25,7 +26,7 @@ namespace tinynf_sam
         //transmitHeadsPtr here is the ptr pointing at the beginning of an allocated part of the memory of the size
         // IXGBE_AGENT_OUTPUTS_MAX * TRANSMIT_HEAD_MULTIPLIER
         private volatile UIntPtr transmitHeadsPtr; // size = IXGBE_AGENT_OUTPUTS_MAX * TRANSMIT_HEAD_MULTIPLIER
-        private volatile UIntPtr[] rings; // 0 == shared receive/transmit, rest are exclusive transmit, size = IXGBE_AGENT_OUTPUTS_MAX
+        private UIntPtr[] rings; // 0 == shared receive/transmit, rest are exclusive transmit, size = IXGBE_AGENT_OUTPUTS_MAX
         private UIntPtr[] transmitTailAddrs;
 
 
@@ -232,7 +233,10 @@ namespace tinynf_sam
             // "The following steps should be done once per transmit queue:"
             // "- Allocate a region of memory for the transmit descriptor list."
             // This is already done in agent initialization as agent->rings[*]
-            ulong* ring = (ulong*)this.rings[outputsCount];  // was volatile in C code but in C#, cannot make pointer to volatile value
+
+            // was volatile in C code but in C#,
+            //cannot make pointer to volatile value so we will read/write to it using Thread.Volatile.Read/Write
+            ulong* ring = (ulong*)this.rings[outputsCount];  
 
             // Program all descriptors' buffer address now
             // n was a uintptr_t in C, I use ulong to be sure
@@ -248,7 +252,7 @@ namespace tinynf_sam
                 }
 
                 //ring[n * 2u] = packetPhysAddr; IN C CODE
-                ring[n * 2u] = (ulong)packetPhysAddr;
+                Volatile.Write(ref ring[n * 2u], (ulong)packetPhysAddr);
             }
 
             // "- Program the descriptor base address with the address of the region (TDBAL, TDBAH)."
@@ -336,7 +340,7 @@ namespace tinynf_sam
         {
             // Since descriptors are 16 bytes, the index must be doubled
             ulong* mainMetadataAddr = (ulong*)rings[0] + 2u * processedDelimiter + 1;
-            ulong receiveMetadata = *mainMetadataAddr;
+            ulong receiveMetadata = Volatile.Read(ref *mainMetadataAddr);
             // Section 7.1.5 Legacy Receive Descriptor Format:
             // "Status Field (8-bit offset 32, 2nd line)": Bit 0 = DD, "Descriptor Done."
 
@@ -401,8 +405,8 @@ namespace tinynf_sam
             ulong rsBit = (ulong)((processedDelimiter & (IxgbeConstants.IXGBE_AGENT_TRANSMIT_PERIOD - 1)) == (IxgbeConstants.IXGBE_AGENT_TRANSMIT_PERIOD - 1) ? 1 : 0) << (24 + 3);
             for (ulong n = 0; n < IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX; n++)
             { 
-                *((ulong*)rings[n] + 2u * processedDelimiter + 1) =
-                    ((outputs[n] ? 1u : 0u) * (ulong)packetLength) | rsBit | IxgbeConstants.BitNSetLong(24 + 1) | IxgbeConstants.BitNSetLong(24);
+               Volatile.Write(ref *((ulong*)rings[n] + 2u * processedDelimiter + 1), 
+                    ((outputs[n] ? 1u : 0u) * (ulong)packetLength) | rsBit | IxgbeConstants.BitNSetLong(24 + 1) | IxgbeConstants.BitNSetLong(24));
             }
 
             // Increment the processed delimiter, modulo the ring size
