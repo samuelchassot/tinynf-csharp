@@ -25,7 +25,7 @@ namespace tinynf_sam
 
         //transmitHeadsPtr here is the ptr pointing at the beginning of an allocated part of the memory of the size
         // IXGBE_AGENT_OUTPUTS_MAX * TRANSMIT_HEAD_MULTIPLIER
-        private volatile UIntPtr transmitHeadsPtr; // size = IXGBE_AGENT_OUTPUTS_MAX * TRANSMIT_HEAD_MULTIPLIER
+        private UIntPtr transmitHeadsPtr; // size = IXGBE_AGENT_OUTPUTS_MAX * TRANSMIT_HEAD_MULTIPLIER
         private UIntPtr[] rings; // 0 == shared receive/transmit, rest are exclusive transmit, size = IXGBE_AGENT_OUTPUTS_MAX
         private UIntPtr[] transmitTailAddrs;
 
@@ -434,7 +434,7 @@ namespace tinynf_sam
                 // Race conditions are possible here, but all they can do is make our "earliest transmit head" value too low, which is fine
                 for (ulong n = 0; n < outputsCount; n++)
                 {
-                    uint head = *(uint*)((ulong)transmitHeadsPtr + n * TRANSMIT_HEAD_MULTIPLIER * 4); //in C: uint32_t head = agent->transmit_heads[n * TRANSMIT_HEAD_MULTIPLIER];
+                    uint head = Volatile.Read(ref ((uint*)transmitHeadsPtr)[n * TRANSMIT_HEAD_MULTIPLIER]); //in C: uint32_t head = agent->transmit_heads[n * TRANSMIT_HEAD_MULTIPLIER];
                     ulong diff = head - processedDelimiter;
                     if(diff <= minDiff)
                     {
