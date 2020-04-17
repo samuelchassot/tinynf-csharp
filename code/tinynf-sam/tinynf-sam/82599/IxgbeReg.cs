@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Env.linuxx86;
 using Utilities;
 
@@ -457,7 +458,7 @@ namespace tinynf_sam
 
         public static unsafe uint ReadReg(UIntPtr addr, uint reg)
         {
-            uint valLe = *((uint*)((ulong)addr + (ulong)reg));
+            uint valLe = Volatile.Read(ref *((uint*)((ulong)addr + (ulong)reg)));
             var val = Endian.LeToCpu(valLe);
             //log.Verbose(string.Format("Read value {0} from reg {1} at addr {2}", val, reg, addr));
             return val;
@@ -465,7 +466,7 @@ namespace tinynf_sam
         public static unsafe void WriteRegRaw(UIntPtr regAddr, uint value)
         {
             //log.Verbose(string.Format("Write raw value {0} to regAddr {1}", value, regAddr));
-            *((uint*)regAddr) = Endian.CpuToLe(value);
+            Volatile.Write(ref *((uint*)regAddr),Endian.CpuToLe(value));
         }
         public static unsafe void WriteReg(UIntPtr addr, uint reg, uint value)
         {
