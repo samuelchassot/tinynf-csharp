@@ -1,6 +1,9 @@
 rm -rf build/*
 
 cd tinynf-sam
+dotnet clean SOLUTION -c Release
+dotnet clean SOLUTION -c Debug
+
 COMPlus_TieredCompilation=0 COMPlus_TC_QuickJit=0 dotnet build --runtime linux-x64 -c Release
 cd ..
 
