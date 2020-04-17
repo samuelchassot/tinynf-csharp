@@ -96,7 +96,7 @@ trap 'trap_cleanup' 2
 
 #Build the code
 cd "$NF_DIR"
-./build.sh >>"$LOG_FILE"
+./build.sh >> "$LOG_FILE"
 cd -
 
 # ACTUAL RUN
