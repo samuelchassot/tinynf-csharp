@@ -1,3 +1,5 @@
+rm -rf build/*
+
 cd tinynf-sam
 COMPlus_TieredCompilation=0 COMPlus_TC_QuickJit=0 dotnet build --runtime linux-x64 -c Release
 cd ..
