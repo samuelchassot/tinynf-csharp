@@ -11,6 +11,9 @@
       <TieredCompilationQuickJit>true</TieredCompilationQuickJit>
     </PropertyGroup>
     
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+      <Optimize>true</Optimize>
+    </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
       <DebugType></DebugType>
       <Optimize>true</Optimize>
