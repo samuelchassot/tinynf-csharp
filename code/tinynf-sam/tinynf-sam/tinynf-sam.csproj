@@ -8,8 +8,8 @@
   
 <!--  Disable tiered compilation and quick JIT  -->
 <PropertyGroup>
-  <TieredCompilation>false</TieredCompilation>
-  <TieredCompilationQuickJit>false</TieredCompilationQuickJit>
+  <TieredCompilation>true</TieredCompilation>
+  <TieredCompilationQuickJit>true</TieredCompilationQuickJit>
 </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
