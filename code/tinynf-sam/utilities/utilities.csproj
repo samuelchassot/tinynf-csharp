@@ -11,6 +11,10 @@
       <TieredCompilationQuickJit>true</TieredCompilationQuickJit>
     </PropertyGroup>
     
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+      <DebugType></DebugType>
+      <Optimize>false</Optimize>
+    </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Class1.cs" />
   </ItemGroup>
