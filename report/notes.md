@@ -1,0 +1,33 @@
+# Notes about driver for report
+- Tiered JIT: the compiler generates 2 versions of methods: 
+    - one quick to launch but less optimized
+    - one optimized but slower to launch
+    when the code is ran, if a function is called more than, let's say, 20 times, the runtime switched the two version.
+
+    It should not affect performance of the driver IMO, because after the heating up part, everything should be in "fast mode"
+
+- Quick JIT
+
+
+
+## performance
+For now, compiler optimize only for the projects *env* and *utilities*, it doesn't work if I activate them for *tinynf-sam*. In Release mode: all debug information is not generated.
+- with Tiered JIT and Quick JIT activated (*true*): throughput = 3476
+- with Tiered JIT and Quick JIT disabled (*false*): throughput = 3515
+
+So changes but few.
+
+By creating a new project to optimize some classes of tinynf-sam, I obtained:
+- Everything optimized, only Program.cs, NetAgent.cs and NetDevice.cs not optimized: 4023
+- Everything optimized, only Program.cs, NetAgent.cs not optimized: 3925 --> don't really know why it goes down there
+
+### Using annotations
+By using this annotation `[MethodImpl(MethodImplOptions.NoOptimization)]` on:
+- `Main`, `Receive`, `Transmit` and `Process`: 5625
+- `Receive`, `Transmit` and `Process`: 5976
+- `Receive`, `Transmit`: 6484
+- `Receive`: 12421
+- `Process`: 12421
+- `Transmit`: 6171
+- If removed from Receive, doesn't work anymore, will look into it to find why. Seems to be the receiveMetadata & BitNLong(32) == 0 which is not working
+- New observation: it works only if optimizations are disable for 1 of `Transmit`, `Receive` or `Process`. If `Transmit` is not optimized, it affects throughput by a factor 1/2. If either `Process`or `Receive` is not optimized, we obtain same throughput
