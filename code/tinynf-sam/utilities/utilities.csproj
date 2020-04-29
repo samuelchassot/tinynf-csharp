@@ -4,7 +4,20 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>Utilities</RootNamespace>
   </PropertyGroup>
-
+  
+    <!--  Tiered compilation and quick JIT  -->
+    <PropertyGroup>
+      <TieredCompilation>true</TieredCompilation>
+      <TieredCompilationQuickJit>true</TieredCompilationQuickJit>
+    </PropertyGroup>
+    
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+      <Optimize>true</Optimize>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+      <DebugType></DebugType>
+      <Optimize>true</Optimize>
+    </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Class1.cs" />
   </ItemGroup>

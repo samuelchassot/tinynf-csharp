@@ -5,12 +5,23 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>tinynf_sam</RootNamespace>
   </PropertyGroup>
+  
+<!--  Tiered compilation and quick JIT  -->
+<PropertyGroup>
+  <TieredCompilation>true</TieredCompilation>
+  <TieredCompilationQuickJit>true</TieredCompilationQuickJit>
+</PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>portable</DebugType>
+    <Optimize>false</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType></DebugType>
+    <Optimize>false</Optimize>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\env\env.csproj" />
