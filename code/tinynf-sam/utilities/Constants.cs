@@ -3,6 +3,6 @@ namespace Utilities
 {
     public static class Constants
     {
-        public const byte logLevel = 3;
+        public const byte logLevel = 0;
     }
 }
