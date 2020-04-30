@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Env.linuxx86;
 using Utilities;
@@ -336,6 +337,7 @@ namespace tinynf_sam
             return true;
         }
 
+        [MethodImpl(MethodImplOptions.NoOptimization)]
         public (bool ok, int packetLength, UIntPtr packetAddr) Receive()
         {
             // Since descriptors are 16 bytes, the index must be doubled
