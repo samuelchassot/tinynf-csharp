@@ -1,8 +1,9 @@
-rm -rf build/*
+rm -rf build
+mkdir build
 
 cd tinynf-sam
-dotnet clean -c Release 
-dotnet clean -c Debug 
+dotnet clean -c Release
+dotnet clean -c Debug
 
 dotnet build --runtime linux-x64 -c $1
 cd ..
