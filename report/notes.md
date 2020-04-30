@@ -23,6 +23,7 @@ By creating a new project to optimize some classes of tinynf-sam, I obtained:
 
 ### Using annotations
 By using this annotation `[MethodImpl(MethodImplOptions.NoOptimization)]` on:
+All these are obtained by disabling Tiered Compilation and Quick JIT on all project
 - `Main`, `Receive`, `Transmit` and `Process`: 5625
 - `Receive`, `Transmit` and `Process`: 5976
 - `Receive`, `Transmit`: 6484
@@ -31,3 +32,13 @@ By using this annotation `[MethodImpl(MethodImplOptions.NoOptimization)]` on:
 - `Transmit`: 6171
 - If removed from Receive, doesn't work anymore, will look into it to find why. Seems to be the receiveMetadata & BitNLong(32) == 0 which is not working
 - New observation: it works only if optimizations are disable for 1 of `Transmit`, `Receive` or `Process`. If `Transmit` is not optimized, it affects throughput by a factor 1/2. If either `Process`or `Receive` is not optimized, we obtain same throughput
+
+#### Find out difference of performance due to Tiered Compilation and Quick JIT
+Both are performed with `[MethodImpl(MethodImplOptions.NoOptimization)]` on `Receive` (doesn't help to enable both of them on this issue).
+- Quick JIT: Disabled. Tiered compilation: Enabled: throughput = 12382
+- Quick JIT: Enabled. Tiered compilation: Disabled: throughput = 12226
+- Quick JIT: Enabled. Tiered compilation: Enabled: throughput = 12421
+- Quick JIT: Disabled. Tiered compilation: Disabled: throughput = 12421
+
+Conclusion: if enable both quick jit and tiered compilation, it doesn't change anything. Heatup seems to do its job here.
+
