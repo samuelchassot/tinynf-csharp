@@ -7,3 +7,4 @@
 [submodule "baselines/click/click"]
 	path = baselines/click/click
 	url = https://github.com/kohler/click
+	ignore = dirty

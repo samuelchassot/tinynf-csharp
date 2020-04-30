@@ -36,11 +36,10 @@ rm -rf results *.log
 # Get NF name, as explained in the script header
 make -C "$NF_DIR" -q print-nf-name >/dev/null 2>&1
 if [ $? -eq 2 ]; then
-  NF_NAME=tinynf-sam # no print-nf-name task, use default
+  NF_NAME=tinynf # no print-nf-name task, use default
 else
   NF_NAME="$(make -C "$NF_DIR" -s print-nf-name)" # -s to not print 'Entering directory...'
 fi
-#NF_NAME=tinynf-sam
 
 # Convenience function, now that we know what to clean up
 cleanup() { sudo pkill -x -9 "$NF_NAME" >/dev/null 2>&1; }
@@ -77,11 +76,11 @@ fi
 
 echo '[bench] Building and running the NF...'
 
-# TN_ARGS="$DUT_DEVS" make -C "$NF_DIR" >"$LOG_FILE" 2>&1
-# if [ $? -ne 0 ]; then
-#   echo "[FATAL] Could not build; the $LOG_FILE file in the same directory as $0 may be useful"
-#   exit 1
-# fi
+TN_ARGS="$DUT_DEVS" make -C "$NF_DIR" >"$LOG_FILE" 2>&1
+if [ $? -ne 0 ]; then
+  echo "[FATAL] Could not build; the $LOG_FILE file in the same directory as $0 may be useful"
+  exit 1
+fi
 
 # Before running the NF, ensure we'll clean up even on Ctrl+C
 trap_cleanup()
@@ -92,16 +91,7 @@ trap_cleanup()
 }
 trap 'trap_cleanup' 2
 
-# TN_ARGS="$DUT_DEVS" taskset -c "$DUT_CPU" make -C "$NF_DIR" run >>"$LOG_FILE" 2>&1 &
-
-#Build the code
-cd "$NF_DIR"
-./build.sh Release >>"$LOG_FILE"
-cd -
-
-# ACTUAL RUN
-sudo taskset -c "$DUT_CPU" "$NF_DIR/build/$NF_NAME" $DUT_DEVS >>"$LOG_FILE" 2>&1 &
-echo $DUT_DEVS
+TN_ARGS="$DUT_DEVS" taskset -c "$DUT_CPU" make -C "$NF_DIR" run >>"$LOG_FILE" 2>&1 &
 # Sleep (as little as possible) if the NF needs a while to start
 for i in $(seq 1 30); do
   sleep 1
