@@ -42,3 +42,6 @@ Both are performed with `[MethodImpl(MethodImplOptions.NoOptimization)]` on `Rec
 
 Conclusion: if enable both quick jit and tiered compilation, it doesn't change anything. Heatup seems to do its job here.
 
+
+### Debugging
+Remote debugging doesn't work well.
