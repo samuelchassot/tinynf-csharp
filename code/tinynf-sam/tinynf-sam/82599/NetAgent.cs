@@ -337,7 +337,6 @@ namespace tinynf_sam
             return true;
         }
 
-        [MethodImpl(MethodImplOptions.NoOptimization)]
         public (bool ok, int packetLength, UIntPtr packetAddr) Receive()
         {
             // Since descriptors are 16 bytes, the index must be doubled
@@ -451,6 +450,7 @@ namespace tinynf_sam
         // --------------
         // High-level API
         // --------------
+        [MethodImpl(MethodImplOptions.NoOptimization)]
         public void Process(Func<int, UIntPtr, bool[], int> packetHandler)
         {
             (bool ok, int packetLength, UIntPtr packetPtr) = this.Receive();
