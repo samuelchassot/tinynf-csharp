@@ -42,7 +42,7 @@ namespace tinynf_sam
             padding = mem.TnMemAllocate(3*8);
             if(padding == UIntPtr.Zero)
             {
-                Util.log.Debug("Cannot allocate mempory for the padding");
+                Util.log.Debug("Cannot allocate memory for the padding");
                 throw new MemoryAllocationErrorException();
             }
             transmitTailAddrs = new UIntPtr[(int)IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX];
