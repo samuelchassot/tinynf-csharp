@@ -30,8 +30,6 @@ namespace tinynf_sam
         private UIntPtr[] rings; // 0 == shared receive/transmit, rest are exclusive transmit, size = IXGBE_AGENT_OUTPUTS_MAX
         private UIntPtr[] transmitTailAddrs;
 
-        bool[] outputs; //used in Process
-
 
         /// <summary>
         /// Create a new NetAgent and return it. Because it needs to allocate memory and do other things
@@ -40,8 +38,6 @@ namespace tinynf_sam
         /// <returns></returns>
         public NetAgent(Memory mem)
         {
-            outputs = new bool[IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX];
-
             receiveTailAddr = UIntPtr.Zero;
             padding = mem.TnMemAllocate(3*8);
             if(padding == UIntPtr.Zero)
@@ -463,6 +459,8 @@ namespace tinynf_sam
             {
                 return;
             }
+
+            bool[] outputs = new bool[IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX];
             int newpacketLength = packetHandler(packetLength, packetPtr, outputs);
             Transmit(newpacketLength, outputs);
         }
