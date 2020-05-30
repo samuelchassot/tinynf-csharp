@@ -43,7 +43,7 @@ Both are performed with `[MethodImpl(MethodImplOptions.NoOptimization)]` on `Rec
 Conclusion: if enable both quick jit and tiered compilation, it doesn't change anything. Heatup seems to do its job here.
 
 #### try to make opti works:
-- If I move ```outputs``` as a field instead of a local variable and let the compiler optimize ```Process``` (where it is used), it doesn't work anymore.
+- If I move ```outputs``` as a field instead of a local variable and let the compiler optimize ```Process``` but not optimize ```Receive``` (where it is used), it doesn't work anymore. But it works if ```Process``` is not optimize but ```Receive``` is.
 
 ### Debugging
 Remote debugging doesn't work well.
