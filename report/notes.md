@@ -45,5 +45,6 @@ Conclusion: if enable both quick jit and tiered compilation, it doesn't change a
 #### try to make opti works:
 - If I move ```outputs``` as a field instead of a local variable and let the compiler optimize ```Process``` but not optimize ```Receive``` (where it is used), it doesn't work anymore. But it works if ```Process``` is not optimize but ```Receive``` is.
 - Not optimizing ```Main``` doesn't change anything.
+- Let opti everything but split ```Receive``` in two methods seems to work. (commit b752608e1fb209d96bb665ce2a148373fbba6921)
 ### Debugging
 Remote debugging doesn't work well.
