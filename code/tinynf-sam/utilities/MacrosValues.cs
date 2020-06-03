@@ -6,13 +6,7 @@ namespace Utilities
 
     public enum MacrosValues
     {
-        _SC_PAGESIZE = 1,
-        PROT_READ = 2,
-        PROT_WRITE = 3,
-        MAP_HUGETLB = 4,
-        MAP_ANONYMOUS = 5,
-        MAP_SHARED = 6,
-        MAP_POPULATE = 7
+        _SC_PAGESIZE = 1
     }
 
     public static class EnumExtensions
