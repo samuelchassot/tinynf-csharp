@@ -264,7 +264,7 @@ namespace tinynf_sam
                 // Section 8.2.3.2.1 EEPROM/Flash Control Register
                 IxgbeReg.EEC => 0x10010u,
                 // Section 8.2.3.5.9 Extended Interrupt Mask Clear Registers
-                IxgbeReg.EIMC => (uint)(0x00AB0u + (4u * n)),
+                IxgbeReg.EIMC => (uint)(n == 0 ? 0x00888u : (0x00AB0u + (4u * (n - 1)))),
                 // Section 8.2.3.3.4 Flow Control Receive Threshold High
                 IxgbeReg.FCRTH => (uint)(0x03260u + (4u * n)),
                 // Section 8.2.3.7.1 Filter Control Register (FCTRL)
@@ -381,7 +381,7 @@ namespace tinynf_sam
                 // INTERPRETATION-MISSING: Bit 0, which is not mentioned in the table, is reserved
                 IxgbeRegField.RDRXCTL_CRC_STRIP => IxgbeConstants.BitNSet(1),
                 IxgbeRegField.RDRXCTL_DMAIDONE => IxgbeConstants.BitNSet(3),
-                IxgbeRegField.RDRXCTL_RSCFRSTSIZE => IxgbeConstants.BitNSet(17, 24),
+                IxgbeRegField.RDRXCTL_RSCFRSTSIZE => IxgbeConstants.BitNSet(17, 21),
                 IxgbeRegField.RDRXCTL_RSCACKC => IxgbeConstants.BitNSet(25),
                 IxgbeRegField.RDRXCTL_FCOE_WRFIX => IxgbeConstants.BitNSet(26),
                 // Section 8.2.3.10.2 DCB Transmit Descriptor Plane Control and Status

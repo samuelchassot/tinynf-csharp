@@ -22,7 +22,7 @@ namespace tinynf_sam
         // Section 7.3.1 Interrupts Registers:
         //	"These registers are extended to 64 bits by an additional set of two registers.
         //	 EICR has an additional two registers EICR(1)... EICR(2) and so on for the EICS, EIMS, EIMC, EIAM and EITR registers."
-        public const uint IXGBE_INTERRUPT_REGISTERS_COUNT = 2u;
+        public const uint IXGBE_INTERRUPT_REGISTERS_COUNT = 3u;
         // Section 7.10.3.10 Switch Control:
         //	"Multicast Table Array (MTA) - a 4 Kb array that covers all combinations of 12 bits from the MAC destination address."
         public const uint IXGBE_MULTICAST_TABLE_ARRAY_SIZE = 4u * 1024u;

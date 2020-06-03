@@ -106,9 +106,10 @@ namespace tinynf_sam
             Time.SleepMicroSec(10 * 1000);
             //	Section 8.2.3.5.4 Extended Interrupt Mask Clear Register (EIMC):
             //	"Writing a 1b to any bit clears its corresponding bit in the EIMS register disabling the corresponding interrupt in the EICR register. Writing 0b has no impact"
-            for (byte n = 0; n < IxgbeConstants.IXGBE_INTERRUPT_REGISTERS_COUNT ; n++)
+            IxgbeReg.EIMC.Write(newDevice.Addr, 0x7FFFFFFFu, idx: 0);
+            for (byte n = 1; n < IxgbeConstants.IXGBE_INTERRUPT_REGISTERS_COUNT; n++)
             {
-                IxgbeReg.EIMC.Set(newDevice.Addr, IxgbeRegField.EIMC_MASK, idx: n);
+                IxgbeReg.EIMC.Write(newDevice.Addr, 0xFFFFFFFFu, idx: n);
             }
 
             //	"To enable flow control, program the FCTTV, FCRTL, FCRTH, FCRTV and FCCFG registers.
@@ -481,7 +482,7 @@ namespace tinynf_sam
             // "Prior to issuing software reset, the driver needs to execute the master disable algorithm as defined in Section 5.2.5.3.2."
             // Section 5.2.5.3.2 Master Disable:
             // "The device driver disables any reception to the Rx queues as described in Section 4.6.7.1"
-            for (int queue = 0; queue <= IxgbeConstants.IXGBE_RECEIVE_QUEUES_COUNT; queue++)
+            for (int queue = 0; queue < IxgbeConstants.IXGBE_RECEIVE_QUEUES_COUNT; queue++)
             {
                 // Section 4.6.7.1.2 [Dynamic] Disabling [of Receive Queues]
                 // "Disable the queue by clearing the RXDCTL.ENABLE bit."

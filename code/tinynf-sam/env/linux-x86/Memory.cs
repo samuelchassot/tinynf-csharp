@@ -156,8 +156,6 @@ namespace Env.linuxx86
                 Util.log.Debug("the offset is to big to be represented as long, Tn_mem_virt_to_phys");
                 return UIntPtr.Zero;
             }
-            int required = sizeof(ulong);
-            byte[] res = new byte[required];
 
             long pos = (long)offset;
             //x86 is little endian

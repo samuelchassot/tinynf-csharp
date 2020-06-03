@@ -135,7 +135,7 @@ namespace tinynf_sam
             Util.log.Debug("For agent with rings[0] = " + rings[0] + " , the phys addr of the rings[0] is " + ringPhysAddr);
 
             IxgbeReg.RDBAH.Write(device.Addr, (uint)((ulong)ringPhysAddr >> 32), idx: queueIndex);
-            IxgbeReg.RDBAL.Write(device.Addr, (uint)((ulong)ringPhysAddr & 0xFFFFFFFFu), idx: queueIndex);
+            IxgbeReg.RDBAL.Write(device.Addr, (uint)(ulong)ringPhysAddr, idx: queueIndex);
             // "- Set the length register to the size of the descriptor ring (register RDLEN)."
             // Section 8.2.3.8.3 Receive DEscriptor Length (RDLEN[n]):
             // "This register sets the number of bytes allocated for descriptors in the circular descriptor buffer."
@@ -192,7 +192,7 @@ namespace tinynf_sam
             // Section 8.2.3.1.3 Extended Device Control Register (CTRL_EXT): Bit 16 == "NS_DIS, No Snoop Disable"
             IxgbeReg.CTRLEXT.Set(device.Addr, IxgbeRegField.CTRLEXT_NSDIS);
             // Section 8.2.3.11.1 Rx DCA Control Register (DCA_RXCTRL[n]): Bit 12 == "Default 1b; Reserved. Must be set to 0."
-            IxgbeReg.DCARXCTRL.Set(device.Addr, IxgbeRegField.DCARXCTRL_UNKNOWN, idx: queueIndex);
+            IxgbeReg.DCARXCTRL.Clear(device.Addr, IxgbeRegField.DCARXCTRL_UNKNOWN, idx: queueIndex);
 
 
             this.receiveTailAddr = (UIntPtr)((ulong)device.Addr + IxgbeReg.RDT.GetAddr(queueIndex));
@@ -250,10 +250,11 @@ namespace tinynf_sam
                 if(packetPhysAddr == UIntPtr.Zero)
                 {
                     Util.log.Debug("Could not get a packet's physical address");
+                    return false;
                 }
 
                 //ring[n * 2u] = packetPhysAddr; IN C CODE
-                Volatile.Write(ref ring[n * 2u], (ulong)packetPhysAddr);
+                Volatile.Write(ref *(ring + n * 2u), (ulong)packetPhysAddr);
             }
 
             // "- Program the descriptor base address with the address of the region (TDBAL, TDBAH)."
@@ -268,7 +269,7 @@ namespace tinynf_sam
             }
 
             IxgbeReg.TDBAH.Write(device.Addr, (uint)((ulong)ringPhysAddr >> 32), idx: queueIndex);
-            IxgbeReg.TDBAL.Write(device.Addr, (uint)((ulong)ringPhysAddr & 0xFFFFFFFFu), idx: queueIndex);
+            IxgbeReg.TDBAL.Write(device.Addr, (uint)(ulong)ringPhysAddr, idx: queueIndex);
 
 
             // "- Set the length register to the size of the descriptor ring (TDLEN)."
@@ -313,7 +314,7 @@ namespace tinynf_sam
             //	"Head_WB_En, bit 0 [...] 1b = Head write-back is enabled."
             //	"Reserved, bit 1"
             IxgbeReg.TDWBAH.Write(device.Addr, (uint)((ulong)headPhysAddr >> 32), idx: queueIndex);
-            IxgbeReg.TDWBAL.Write(device.Addr, (uint)(((ulong)headPhysAddr & 0xFFFFFFFFu) | 1), idx: queueIndex);
+            IxgbeReg.TDWBAL.Write(device.Addr, (uint)((ulong)headPhysAddr | 1), idx: queueIndex);
             // INTERPRETATION-MISSING: We must disable relaxed ordering of head pointer write-back, since it could cause the head pointer to be updated backwards
             IxgbeReg.DCATXCTRL.Clear(device.Addr, IxgbeRegField.DCATXCTRL_TX_DESC_WB_RO_EN, idx: queueIndex);
             // "- Enable transmit path by setting DMATXCTL.TE.
@@ -436,7 +437,7 @@ namespace tinynf_sam
                 // Race conditions are possible here, but all they can do is make our "earliest transmit head" value too low, which is fine
                 for (ulong n = 0; n < outputsCount; n++)
                 {
-                    uint head = Volatile.Read(ref ((uint*)transmitHeadsPtr)[n * TRANSMIT_HEAD_MULTIPLIER]); //in C: uint32_t head = agent->transmit_heads[n * TRANSMIT_HEAD_MULTIPLIER];
+                    uint head = Volatile.Read(ref *((uint*)transmitHeadsPtr + n * TRANSMIT_HEAD_MULTIPLIER)); //in C: uint32_t head = agent->transmit_heads[n * TRANSMIT_HEAD_MULTIPLIER];
                     ulong diff = head - processedDelimiter;
                     if(diff <= minDiff)
                     {
@@ -445,6 +446,7 @@ namespace tinynf_sam
                     }
                 }
                 IxgbeRegExtension.WriteRegRaw(receiveTailAddr, (earliestTransmitHead - 1) & (IxgbeConstants.IXGBE_RING_SIZE - 1));
+
             }
         }
 
