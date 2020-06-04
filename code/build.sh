@@ -15,4 +15,3 @@ make
 cd ..
 
 cp cwrapper/FunctionsWrapper.so ./build/FunctionsWrapper.so
-cp cwrapper/MacrosCstVal.so ./build/MacrosCstVal.so

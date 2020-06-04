@@ -92,7 +92,10 @@ int numberOfTrailingZeros(unsigned long n){
     return __builtin_ctzll(n);
 }
 
-//FOR NOW ONLY FOR DEBUGGING
+int get_sc_pagesize(int id){
+	return _SC_PAGESIZE;
+}
+
 uintptr_t tn_mem_allocate_C(const uint64_t size, const uint64_t HUGEPAGE_SIZE, const int HUGEPAGE_SIZE_POWER)
 {
 	// http://man7.org/linux/man-pages//man2/munmap.2.html

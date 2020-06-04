@@ -21,6 +21,9 @@ namespace Env.linuxx86
         [DllImport("libc")]
         private static extern long sysconf(int name);
 
+        [DllImport("FunctionsWrapper.so")]
+        private static extern int get_sc_pagesize();
+
         /// <summary>
         /// Return the page size or 0 in case of an error
         /// </summary>
@@ -28,7 +31,7 @@ namespace Env.linuxx86
         private static UIntPtr GetPageSize()
         {
             // sysconf is documented to return -1 on error; let's check all negative cases along the way, to make sure the conversion to unsigned is sound
-            long pageSizeLong = sysconf(MacrosValues._SC_PAGESIZE.GetValue());
+            long pageSizeLong = sysconf(get_sc_pagesize());
             if (pageSizeLong > 0)
             {
                 return (UIntPtr)pageSizeLong;
