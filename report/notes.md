@@ -57,6 +57,13 @@ Conclusion: if enable both quick jit and tiered compilation, it doesn't change a
 Remote debugging doesn't work well.
 
 
+#### Pointers vs ```Span<>```
+Try to replace memory accesses done using pointers by ones using ```Span<>```
+
+- With a ```Thread.MemoryBarrier()``` before and after, real slowdown in performance (loose about 2Gpbs on 12.6).
+- Without any barriers, it works with a really small loss of performance (12460 vs 12539)
+
+
 ## Old notes
 
 ## Observations, notes
