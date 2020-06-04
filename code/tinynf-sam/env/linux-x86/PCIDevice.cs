@@ -20,13 +20,13 @@ namespace Env.linuxx86
         private static extern int ioperm(ulong from, ulong num, int turn_on);
 
         [DllImport(@"FunctionsWrapper.so")]
-        private static extern void outlCustom(uint value, ushort port);
+        private static extern void outl_custom(uint value, ushort port);
 
         [DllImport(@"FunctionsWrapper.so")]
-        private static extern void outbCustom(byte value, ushort port);
+        private static extern void outb_custom(byte value, ushort port);
 
         [DllImport(@"FunctionsWrapper.so")]
-        private static extern uint inlCustom(ushort port);
+        private static extern uint inl_custom(ushort port);
         
         public PCIDevice(byte bus, byte device, byte function)
         {
@@ -95,9 +95,9 @@ namespace Env.linuxx86
         public void PciAddress(byte reg)
         {
             uint addr = GetPciRegAddr(reg);
-            outlCustom(addr, PCI_CONFIG_ADDR);
+            outl_custom(addr, PCI_CONFIG_ADDR);
 
-            outbCustom(0, 0x80);
+            outb_custom(0, 0x80);
 
         }
 
@@ -108,10 +108,10 @@ namespace Env.linuxx86
                 ulong deviceNode = GetDeviceNode();
                 if (deviceNode != ulong.MaxValue)
                 {       
-                    if (Numa.TnNumaIsCurrentNode(deviceNode))
+                    if (Numa.NumaIsCurrentNode(deviceNode))
                     {
                         PciAddress(reg);
-                        uint result = inlCustom(PCI_CONFIG_DATA);
+                        uint result = inl_custom(PCI_CONFIG_DATA);
                         Util.log.Verbose(string.Format("Read PCI : from reg {0} -> {1}", reg, result));
                         return result;
                     }
@@ -127,10 +127,10 @@ namespace Env.linuxx86
                 ulong deviceNode = GetDeviceNode();
                 if (deviceNode != ulong.MaxValue)
                 {
-                    if (Numa.TnNumaIsCurrentNode(deviceNode))
+                    if (Numa.NumaIsCurrentNode(deviceNode))
                     {
                         PciAddress(reg);
-                        outlCustom(value, PCI_CONFIG_DATA);
+                        outl_custom(value, PCI_CONFIG_DATA);
                         Util.log.Verbose(string.Format("Write PCI : to reg {0} := {1}", reg, value));
                     }
                 }

@@ -7,17 +7,17 @@ namespace Env.linuxx86
     public class Numa
     {
         [DllImport(@"FunctionsWrapper.so")]
-        private unsafe static extern int getcpu(uint* cpu, uint* node);
+        private unsafe static extern int get_cpu(uint* cpu, uint* node);
 
         [DllImport(@"FunctionsWrapper.so")]
         private unsafe static extern long get_mempolicy(int* mode, ulong* nodemask,
                          ulong maxnode, void* addr,
                          ulong flags);
 
-        public unsafe static bool TnNumaIsCurrentNode(UInt64 node)
+        public unsafe static bool NumaIsCurrentNode(UInt64 node)
         {
             uint thisNode = uint.MaxValue;
-            if(getcpu(null, &thisNode) != 0)
+            if(get_cpu(null, &thisNode) != 0)
             {
                 Util.log.Debug("NumaIsCurrentNode: cannot getCpu");
                 return false;
@@ -25,7 +25,7 @@ namespace Env.linuxx86
             //Util.log.Debug("NUMA: NumaIsCurrentNode:  this_node = " + thisNode + "    node in argument = " + node);
             return thisNode == (uint)node;
         }
-        public unsafe static (bool, ulong) TnNumaGetAddrNode(UIntPtr addr)
+        public unsafe static (bool, ulong) NumaGetAddrNode(UIntPtr addr)
         {
             int node = -1;
             ulong outNode = ulong.MaxValue;

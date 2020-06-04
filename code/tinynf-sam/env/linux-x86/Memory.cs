@@ -11,7 +11,6 @@ namespace Env.linuxx86
     {
         private const uint HUGEPAGE_SIZE_POWER = (10 + 10 + 1);
         private const ulong HUGEPAGE_SIZE = 1ul << (int)HUGEPAGE_SIZE_POWER;
-        private const uint MAP_HUGE_SHIFT = 26;
         private readonly ulong SIZE_MAX = UIntPtr.Size == 64 ? 18446744073709551615UL : 4294967295UL;
 
         public Memory()
@@ -40,7 +39,7 @@ namespace Env.linuxx86
         }
 
         [DllImport("FunctionsWrapper.so")]
-        private static extern UIntPtr tn_mem_allocate_C(ulong size, ulong HUGEPAGE_SIZE, ulong HUGEPAGE_SIZE_POWER);
+        private static extern UIntPtr mem_allocate(ulong size, ulong HUGEPAGE_SIZE, ulong HUGEPAGE_SIZE_POWER);
 
         /// <summary>
         /// Allocates memory using MemoryMappedFile.CreateNew().
@@ -55,11 +54,11 @@ namespace Env.linuxx86
                 return UIntPtr.Zero;
             }
 
-            UIntPtr ptr = tn_mem_allocate_C(size, HUGEPAGE_SIZE, HUGEPAGE_SIZE_POWER);
-            (bool okGetAddr, ulong node) = Numa.TnNumaGetAddrNode(ptr);
+            UIntPtr ptr = mem_allocate(size, HUGEPAGE_SIZE, HUGEPAGE_SIZE_POWER);
+            (bool okGetAddr, ulong node) = Numa.NumaGetAddrNode(ptr);
             if (okGetAddr)
             {
-                if (Numa.TnNumaIsCurrentNode(node))
+                if (Numa.NumaIsCurrentNode(node))
                 {
                     return ptr;
                 }
@@ -76,14 +75,14 @@ namespace Env.linuxx86
         }
 
         [DllImport("FunctionsWrapper.so")]
-        private static extern void tn_mem_free_C(UIntPtr addr, ulong HUGEPAGE_SIZE);
+        private static extern void mem_free(UIntPtr addr, ulong HUGEPAGE_SIZE);
         /// <summary>
         /// Dispose the MemoryMappedFile object's resources
         /// </summary>
         /// <param name="ptr"><param>
         public void TnMemFree(UIntPtr ptr)
         {
-            tn_mem_free_C(ptr, HUGEPAGE_SIZE);
+            mem_free(ptr, HUGEPAGE_SIZE);
             
         }
 
@@ -139,7 +138,7 @@ namespace Env.linuxx86
         }
 
         [DllImport(@"FunctionsWrapper.so")]
-        private static unsafe extern int mem_virt_to_phys(UIntPtr page, UIntPtr map_offset, ulong* outMetadata);
+        private static unsafe extern int mem_virt_to_phys(UIntPtr page, UIntPtr map_offset, ulong* out_metadata);
 
         public unsafe UIntPtr TnMemVirtToPhys(UIntPtr addr)
         {

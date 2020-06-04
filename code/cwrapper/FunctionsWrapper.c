@@ -15,7 +15,7 @@ long get_mempolicy(int *mode, unsigned long *nodemask,
 	return syscall(SYS_get_mempolicy, mode, nodemask, maxnode, addr, flags);
 }
 
-int getcpu(unsigned *cpu, unsigned *node)
+int get_cpu(unsigned *cpu, unsigned *node)
 {
 	return syscall(SYS_getcpu, cpu, node, NULL);
 }
@@ -45,7 +45,7 @@ uintptr_t virt_to_phys_mem(uintptr_t addr, unsigned long size)
 	return (uintptr_t)mapped;
 }
 
-int mem_virt_to_phys(const uintptr_t page, const uintptr_t map_offset, uint64_t *outMetadata)
+int mem_virt_to_phys(const uintptr_t page, const uintptr_t map_offset, uint64_t *out_metadata)
 {
 
 	const int map_fd = open("/proc/self/pagemap", O_RDONLY);
@@ -70,22 +70,22 @@ int mem_virt_to_phys(const uintptr_t page, const uintptr_t map_offset, uint64_t 
 		//TN_DEBUG("Could not read the pagemap");
 		return 3;
 	}
-	*outMetadata = metadata;
+	*out_metadata = metadata;
 	return 0;
 }
 
 //need to define them like that because they are defined as macros so cannot be called directly from C#
-void outlCustom(unsigned int value, unsigned short int port)
+void outl_custom(unsigned int value, unsigned short int port)
 {
 	outl(value, port);
 }
 
-void outbCustom(unsigned char value, unsigned short int port)
+void outb_custom(unsigned char value, unsigned short int port)
 {
 	outb(value, port);
 }
 
-unsigned int inlCustom(unsigned short int port)
+unsigned int inl_custom(unsigned short int port)
 {
 	return inl(port);
 }
@@ -95,7 +95,7 @@ int get_sc_pagesize()
 	return _SC_PAGESIZE;
 }
 
-uintptr_t tn_mem_allocate_C(const uint64_t size, const uint64_t HUGEPAGE_SIZE, const int HUGEPAGE_SIZE_POWER)
+uintptr_t mem_allocate(const uint64_t size, const uint64_t HUGEPAGE_SIZE, const int HUGEPAGE_SIZE_POWER)
 {
 	// http://man7.org/linux/man-pages//man2/munmap.2.html
 	void *page = mmap(
@@ -123,7 +123,7 @@ uintptr_t tn_mem_allocate_C(const uint64_t size, const uint64_t HUGEPAGE_SIZE, c
 	return addr;
 }
 
-void tn_mem_free_C(const uintptr_t addr, const uint64_t HUGEPAGE_SIZE)
+void mem_free(const uintptr_t addr, const uint64_t HUGEPAGE_SIZE)
 {
 	munmap((void *)addr, (size_t)HUGEPAGE_SIZE);
 }
