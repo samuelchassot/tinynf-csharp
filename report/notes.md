@@ -8,6 +8,12 @@
 
 - Quick JIT
 
+## Call to C
+We need to call C to perform some actions:
+- the value of ```_SG_PAGESIZE``` cannot be known in advance as it depends on the system. It is defined as a C macro so it is mandatory to call C to get its value.
+- outb, outl, inl are defined as macros in C (x86 instructions directly), cannot be called in C# too
+- ```mmap```: cannot use C# version because of reading 0 length files that is impossible (https://github.com/dotnet/runtime/issues/26626). Even .NET framework calls a C library to call ```mmap``` : https://github.com/dotnet/runtime/blob/master/src/libraries/Common/src/Interop/Unix/System.Native/Interop.MMap.cs#L33
+
 
 
 ## performance
@@ -22,7 +28,7 @@ By creating a new project to optimize some classes of tinynf-sam, I obtained:
 - Everything optimized, only Program.cs, NetAgent.cs not optimized: 3925 --> don't really know why it goes down there
 
 ### Using annotations
-By using this annotation `[MethodImpl(MethodImplOptions.NoOptimization)]` on:
+By using this annotation `x x  ` on:
 All these are obtained by disabling Tiered Compilation and Quick JIT on all project
 - `Main`, `Receive`, `Transmit` and `Process`: 5625
 - `Receive`, `Transmit` and `Process`: 5976
@@ -49,3 +55,54 @@ Conclusion: if enable both quick jit and tiered compilation, it doesn't change a
 - With split ```Receive```, it doesn't seem to work if we do a tail call to the second method, which seems normal if compiler does tail call elimination.
 ### Debugging
 Remote debugging doesn't work well.
+
+
+## Old notes
+
+## Observations, notes
+- will need to call libc things, especially to perform syscall or to work on the memory directly. C# can't access hw features so need to pass by C. But don't seem to loose advantages of HL languages, even taking that into account as we have them in other places.
+
+- instead of using mmap in C, I will use *MemoryMappedFile* from .NET (https://docs.microsoft.com/en-us/dotnet/api/system.io.memorymappedfiles.memorymappedfile?view=netframework-4.8#remarks). With the method *CreateNew*, it can create a region in memory without mapping to a file, useful for interprocess communication. Exactly what I need.
+
+- I need to allocate memory using MemoryMappedFile for the *transmitHeads* even if not the case in the C code, because using field doesn't ensure fixed position in memory.
+
+### Debugging
+
+## Instructions
+- ```make``` the library in *cwrapper* folder
+- copy the *CWrapper.so* in the same as the executable built by VS
+- run the dotnet executable
+
+## Useful links
+- https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=5&ved=2ahUKEwivjqn1w9vnAhWV7KYKHeRbDxUQFjAEegQIBhAB&url=https%3A%2F%2Fwww.jungo.com%2Fst%2Fsupport%2Fwindriver-technical-documents%2F&usg=AOvVaw01GNwyUtBJYrtfCVCvEL-z
+
+- https://csharp.hotexamples.com/examples/-/PCI/-/php-pci-class-examples.html
+
+- https://github.com/FlingOS/FlingOS
+
+- https://guidedhacking.com/threads/using-syscalls-in-c.12164/
+
+- https://developers.redhat.com/blog/2019/03/25/using-net-pinvoke-for-linux-system-functions/
+
+- https://stackoverflow.com/questions/31179076/how-to-get-an-intptr-to-access-the-view-of-a-memorymappedfile (memorymappedfile and pointer)
+
+## Working examples
+### Working example that calls kill to kill a process
+
+```c#
+using System.Runtime.InteropServices;
+
+namespace tinynf_sam
+{
+    class Program
+    {
+        [DllImport("libc", SetLastError = true)]
+        public static extern int kill(int pid, int sig);
+
+        static void Main(string[] args)
+        {
+            kill(1281, 6);
+        }
+    }
+}
+```
