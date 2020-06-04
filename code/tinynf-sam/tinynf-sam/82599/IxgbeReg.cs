@@ -233,10 +233,6 @@ namespace tinynf_sam
     {
         private static readonly Logger log = new Logger(Constants.logLevel);
 
-        // I chose to call the C version because couldn't find a satisfying alternative and I wanted to keep the performance
-        [DllImport(@"FunctionsWrapper.so")]
-        private static extern int numberOfTrailingZeros(ulong n);
-
         /// <summary>
         /// Get the address for the given register. If idx is needed, pass it.
         /// If idx is needed but not given, unguaranteed behavior
@@ -418,7 +414,7 @@ namespace tinynf_sam
             if (field != IxgbeRegField.NONE)
             {
                 uint fieldVal = field.GetValue();
-                int nTrailing = numberOfTrailingZeros(fieldVal);
+                int nTrailing = NumberOfTrailingZeros(fieldVal);
                 return (val & fieldVal) >> nTrailing;
                 
             }
@@ -431,7 +427,7 @@ namespace tinynf_sam
             if(field != IxgbeRegField.NONE)
             {
                 uint fieldValue = field.GetValue();
-                valueToWrite = (Read(reg, addr, field, idx) & ~fieldValue) | ((value << numberOfTrailingZeros(fieldValue)) & fieldValue);
+                valueToWrite = (Read(reg, addr, field, idx) & ~fieldValue) | ((value << NumberOfTrailingZeros(fieldValue)) & fieldValue);
             }
             WriteReg(addr, reg.GetAddr(idx), valueToWrite);
         }
@@ -472,6 +468,19 @@ namespace tinynf_sam
         {
             //log.Verbose(string.Format("Write value {0} to reg {1} at addr {2}", value, reg, addr));
             WriteRegRaw((UIntPtr)((ulong)addr + reg), value);
+        }
+
+        private static int NumberOfTrailingZeros(ulong n)
+        {
+            int res = 0;
+            int i = 0;
+            while(i<64 && (((1ul << i)&n) == 0))
+            {
+                res++;
+                i++;
+            }
+            return res;
+            
         }
     }
 }
