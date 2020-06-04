@@ -92,7 +92,7 @@ int numberOfTrailingZeros(unsigned long n){
     return __builtin_ctzll(n);
 }
 
-int get_sc_pagesize(int id){
+int get_sc_pagesize(){
 	return _SC_PAGESIZE;
 }
 
