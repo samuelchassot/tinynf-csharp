@@ -61,7 +61,7 @@ Remote debugging doesn't work well.
 Try to replace memory accesses done using pointers by ones using ```Span<>```
 
 - With a ```Thread.MemoryBarrier()``` before and after, real slowdown in performance (loose about 2Gpbs on 12.6).
-- Without any barriers, it works with a really small loss of performance (12460 vs 12539)
+- Without any barriers, it works with a really small loss of performance (12460 vs 12539). Probably due to the index/length check performed by the ```Span``` (https://github.com/dotnet/runtime/blob/master/src/libraries/System.Private.CoreLib/src/System/Span.cs#L142)
 
 
 ## Old notes
