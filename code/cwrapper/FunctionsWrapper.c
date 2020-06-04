@@ -20,7 +20,7 @@ int get_cpu(unsigned *cpu, unsigned *node)
 	return syscall(SYS_getcpu, cpu, node, NULL);
 }
 
-uintptr_t virt_to_phys_mem(uintptr_t addr, unsigned long size)
+uintptr_t mem_phys_to_virt(uintptr_t addr, unsigned long size)
 {
 	//checks are already performed in C#
 	int mem_fd = open("/dev/mem", O_SYNC | O_RDWR);

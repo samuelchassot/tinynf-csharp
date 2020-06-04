@@ -27,7 +27,7 @@ extern "C"
 
     //I omitted the last argument ( struct getcpu_cache *tcache ) because it is NULL anyway and I do not have the struct definition
     MODULE_API int get_cpu(unsigned *cpu, unsigned *node);
-    MODULE_API uintptr_t virt_to_phys_mem(uintptr_t addr, unsigned long size);
+    MODULE_API uintptr_t mem_phys_to_virt(uintptr_t addr, unsigned long size);
     MODULE_API int mem_virt_to_phys(const uintptr_t page, const uintptr_t map_offset, uint64_t *outMetadata);
     MODULE_API void outl_custom(unsigned int value, unsigned short int port);
     MODULE_API void outb_custom(unsigned char value, unsigned short int port);

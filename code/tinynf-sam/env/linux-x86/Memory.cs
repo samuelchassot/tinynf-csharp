@@ -87,7 +87,7 @@ namespace Env.linuxx86
         }
 
         [DllImport(@"FunctionsWrapper.so")]
-        private static unsafe extern UIntPtr virt_to_phys_mem(UIntPtr addr, ulong size);
+        private static unsafe extern UIntPtr mem_phys_to_virt(UIntPtr addr, ulong size);
         /// <summary>
         /// Returns the virtual address corresponding to the given physical address
         /// returns UIntPtr.zero if it failed
@@ -127,7 +127,7 @@ namespace Env.linuxx86
             //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
             //So we just call same in C
-            var ptr = Memory.virt_to_phys_mem(addr, size);
+            var ptr = Memory.mem_phys_to_virt(addr, size);
             if(ptr != (UIntPtr)((void*)-1))
             {
                 return ptr;
