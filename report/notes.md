@@ -64,6 +64,9 @@ Try to replace memory accesses done using pointers by ones using ```Span<>```
 - Without any barriers, it works with a really small loss of performance (12460 vs 12539). Probably due to the index/length check performed by the ```Span``` (https://github.com/dotnet/runtime/blob/master/src/libraries/System.Private.CoreLib/src/System/Span.cs#L142)
 
 
+With normal pointers accesses:
+- removing ```Volatile.Read``` and ```Volatile.Write``` in registers read/write doesn't change anything in performance (12539Mbps with and without)
+
 ## Old notes
 
 ## Observations, notes
