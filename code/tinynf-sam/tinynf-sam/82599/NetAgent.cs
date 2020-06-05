@@ -249,7 +249,7 @@ namespace tinynf_sam
                 UIntPtr packetPhysAddr = mem.TnMemVirtToPhys(packet);
                 if(packetPhysAddr == UIntPtr.Zero)
                 {
-                    Util.log.Debug("Could not get a packet's physical address");
+                    Util.log.Debug("Could not get a packet's physical address for ring n = " + n);
                     return false;
                 }
 
