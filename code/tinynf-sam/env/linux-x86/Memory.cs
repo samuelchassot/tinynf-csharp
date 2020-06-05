@@ -77,6 +77,8 @@ namespace Env.linuxx86
                     if (Numa.NumaIsCurrentNode(node))
                     {
                         allocatedMemoryMappedFiles.Add(ptr, mappedFile);
+                        //write a 0 in the page to force the loading into memory
+                        *(byte*)ptr = 0;
                         return ptr;
                     }
                     else
