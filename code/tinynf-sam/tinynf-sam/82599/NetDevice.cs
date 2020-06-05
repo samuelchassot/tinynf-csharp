@@ -41,7 +41,7 @@ namespace tinynf_sam
             // Section 9.3.7.1.4 Power Management Control / Status Register (PMCSR):
             // "No_Soft_Reset. This bit is always set to 0b to indicate that the 82599 performs an internal reset upon transitioning from D3hot to D0 via software control of the PowerState bits."
             // Thus, the device cannot go from D3 to D0 without resetting, which would mean losing the BARs.
-            if(!PciReg.PCI_PMCSR.Cleared(pciDevice, PciRegField.PCI_PMCSR_POWER_STATE))
+            if (!PciReg.PCI_PMCSR.Cleared(pciDevice, PciRegField.PCI_PMCSR_POWER_STATE))
             {
                 Util.log.Debug("PCI device not in D0.");
                 return null;
@@ -67,13 +67,13 @@ namespace tinynf_sam
             // No need to detect the size, since we know exactly which device we're dealing with. (This also means no writes to BARs, one less chance to mess everything up)
 
             NetDevice newDevice = new NetDevice(pciDevice);
-	        // Section 9.3.6.1 Memory and IO Base Address Registers:
-	        // As indicated in Table 9-4, the low 4 bits are read-only and not part of the address
-            UIntPtr devPhysAddr = (UIntPtr)((((ulong)pciBar0High) << 32) | (pciBar0Low & ~IxgbeConstants.BitNSet(0,3)));
+            // Section 9.3.6.1 Memory and IO Base Address Registers:
+            // As indicated in Table 9-4, the low 4 bits are read-only and not part of the address
+            UIntPtr devPhysAddr = (UIntPtr)((((ulong)pciBar0High) << 32) | (pciBar0Low & ~IxgbeConstants.BitNSet(0, 3)));
             // Section 8.1 Address Regions: "Region Size" of "Internal registers memories and Flash (memory BAR)" is "128 KB + Flash_Size"
             // Thus we can ask for 128KB, since we don't know the flash size (and don't need it thus no need to actually check it)
-            UIntPtr virtAddr = memory.TnMePhysToVirt(devPhysAddr, 128 * 1024);
-            if(virtAddr == UIntPtr.Zero)
+            UIntPtr virtAddr = memory.MePhysToVirt(devPhysAddr, 128 * 1024);
+            if (virtAddr == UIntPtr.Zero)
             {
                 Util.log.Debug("Phys to virt translation failed. NetDevice creation");
                 return null;
@@ -143,14 +143,15 @@ namespace tinynf_sam
             // "- Wait for EEPROM auto read completion."
             // INTERPRETATION-MISSING: This refers to Section 8.2.3.2.1 EEPROM/Flash Control Register (EEC), Bit 9 "EEPROM Auto-Read Done"
             // INTERPRETATION-MISSING: No timeout is mentioned, so we use 1s.
-            if(IxgbeConstants.TimeoutCondition(1000*1000, () => IxgbeReg.EEC.Cleared(newDevice.Addr, IxgbeRegField.EEC_AUTO_RD))){
+            if (IxgbeConstants.TimeoutCondition(1000 * 1000, () => IxgbeReg.EEC.Cleared(newDevice.Addr, IxgbeRegField.EEC_AUTO_RD)))
+            {
                 Util.log.Debug("EEPROM auto read timed out");
                 return null;
             }
             // INTERPRETATION-MISSING: We also need to check bit 8 of the same register, "EEPROM Present", which indicates "EEPROM is present and has the correct signature field. This bit is read-only.",
             //                 since bit 9 "is also set when the EEPROM is not present or whether its signature field is not valid."
             // INTERPRETATION-MISSING: We also need to check whether the EEPROM has a valid checksum, using the FWSM's register EXT_ERR_IND, where "0x00 = No error"
-            if(IxgbeReg.EEC.Cleared(newDevice.Addr, IxgbeRegField.EEC_EE_PRES))
+            if (IxgbeReg.EEC.Cleared(newDevice.Addr, IxgbeRegField.EEC_EE_PRES))
             {
                 Util.log.Debug("EEPROM not present or invalid");
                 return null;
@@ -158,7 +159,7 @@ namespace tinynf_sam
 
             // "- Wait for DMA initialization done (RDRXCTL.DMAIDONE)."
             // INTERPRETATION-MISSING: Once again, no timeout mentioned, so we use 1s
-            if(IxgbeConstants.TimeoutCondition(1000*1000, () => IxgbeReg.RDRXCTL.Cleared(newDevice.Addr, IxgbeRegField.RDRXCTL_DMAIDONE)))
+            if (IxgbeConstants.TimeoutCondition(1000 * 1000, () => IxgbeReg.RDRXCTL.Cleared(newDevice.Addr, IxgbeRegField.RDRXCTL_DMAIDONE)))
             {
                 Util.log.Debug("DMA init timed out");
                 return null;
@@ -432,8 +433,8 @@ namespace tinynf_sam
 
 
             //just return the new instance without any mem allocation
-            
-	        return newDevice;
+
+            return newDevice;
 
         }
 
@@ -508,12 +509,12 @@ namespace tinynf_sam
             //  Once the bit is cleared, it is guaranteed that no requests are pending from this function."
             // INTERPRETATION-MISSING: The next sentence refers to "a given time"; let's say 1 second should be plenty...
             // "The driver might time out if the PCIe Master Enable Status bit is not cleared within a given time."
-            if(IxgbeConstants.TimeoutCondition(1000*1000, () => !IxgbeReg.STATUS.Cleared(addr, IxgbeRegField.STATUS_PCIE_MASTER_ENABLE_STATUS)))
+            if (IxgbeConstants.TimeoutCondition(1000 * 1000, () => !IxgbeReg.STATUS.Cleared(addr, IxgbeRegField.STATUS_PCIE_MASTER_ENABLE_STATUS)))
             {
                 // "In these cases, the driver should check that the Transaction Pending bit (bit 5) in the Device Status register in the PCI config space is clear before proceeding.
                 //  In such cases the driver might need to initiate two consecutive software resets with a larger delay than 1 us between the two of them."
                 // INTERPRETATION-MISSING: Might? Let's say this is a must, and that we assume the software resets work...
-                if(!PciReg.PCI_DEVICESTATUS.Cleared(pciDevice, PciRegField.PCI_DEVICESTATUS_TRANSACTIONPENDING))
+                if (!PciReg.PCI_DEVICESTATUS.Cleared(pciDevice, PciRegField.PCI_DEVICESTATUS_TRANSACTIONPENDING))
                 {
                     Util.log.Debug("DEVICESTATUS.TRANSACTIONPENDING did not clear, cannot perform master disable");
                     return false;

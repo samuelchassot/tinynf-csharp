@@ -46,7 +46,7 @@ namespace Env.linuxx86
         /// </summary>
         /// <param name="size"> in bytes</param>
         /// <returns>The </returns>
-        public unsafe UIntPtr TnMemAllocate(ulong size)
+        public unsafe UIntPtr MemAllocate(ulong size)
         {
             if(size > HUGEPAGE_SIZE)
             {
@@ -95,7 +95,7 @@ namespace Env.linuxx86
         /// <param name="addr"></param>
         /// <param name="size"></param>
         /// <returns></returns>
-        public unsafe UIntPtr TnMePhysToVirt(UIntPtr addr, ulong size)
+        public unsafe UIntPtr MePhysToVirt(UIntPtr addr, ulong size)
         {
             if(size > SIZE_MAX)
             {
