@@ -72,7 +72,7 @@ namespace tinynf_sam
             UIntPtr devPhysAddr = (UIntPtr)((((ulong)pciBar0High) << 32) | (pciBar0Low & ~IxgbeConstants.BitNSet(0, 3)));
             // Section 8.1 Address Regions: "Region Size" of "Internal registers memories and Flash (memory BAR)" is "128 KB + Flash_Size"
             // Thus we can ask for 128KB, since we don't know the flash size (and don't need it thus no need to actually check it)
-            UIntPtr virtAddr = memory.MePhysToVirt(devPhysAddr, 128 * 1024);
+            UIntPtr virtAddr = memory.MemPhysToVirt(devPhysAddr, 128 * 1024);
             if (virtAddr == UIntPtr.Zero)
             {
                 Util.log.Debug("Phys to virt translation failed. NetDevice creation");

@@ -39,7 +39,7 @@ namespace tinynf_sam
         public NetAgent(Memory mem)
         {
             receiveTailAddr = UIntPtr.Zero;
-            padding = mem.TnMemAllocate(3*8);
+            padding = mem.MemAllocate(3*8);
             if(padding == UIntPtr.Zero)
             {
                 Util.log.Debug("Cannot allocate memory for the padding");
@@ -49,7 +49,7 @@ namespace tinynf_sam
             rings = new UIntPtr[IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX];
             processedDelimiter = 0;
 
-            transmitHeadsPtr = mem.TnMemAllocate(IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX * TRANSMIT_HEAD_MULTIPLIER * 4);
+            transmitHeadsPtr = mem.MemAllocate(IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX * TRANSMIT_HEAD_MULTIPLIER * 4);
             if(transmitHeadsPtr == UIntPtr.Zero)
             {
                 Util.log.Debug("Cannot allocate memory for the transmitHeads");
@@ -57,7 +57,7 @@ namespace tinynf_sam
             }
 
 
-            UIntPtr buffPtr = mem.TnMemAllocate(IxgbeConstants.IXGBE_RING_SIZE * IxgbeConstants.IXGBE_PACKET_BUFFER_SIZE);
+            UIntPtr buffPtr = mem.MemAllocate(IxgbeConstants.IXGBE_RING_SIZE * IxgbeConstants.IXGBE_PACKET_BUFFER_SIZE);
             if (buffPtr == UIntPtr.Zero)
             {
                 Util.log.Debug("Cannot allocate memory for the buffer in net agent init");
@@ -67,15 +67,15 @@ namespace tinynf_sam
 
             for (ulong n = 0; n < IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX; n++)
             {
-                UIntPtr ringAddr = mem.TnMemAllocate(IxgbeConstants.IXGBE_RING_SIZE * 16);
+                UIntPtr ringAddr = mem.MemAllocate(IxgbeConstants.IXGBE_RING_SIZE * 16);
                 if (ringAddr == UIntPtr.Zero)
                 {
                     Util.log.Debug("Cannot allocate memory for the ring number " + n + " for InitNetAgent");
                     for (ulong m = 0; m < n; m++)
                     {
-                        mem.TnMemFree(this.rings[m]);
+                        mem.MemFree(this.rings[m]);
                     }
-                    mem.TnMemFree(buffPtr);
+                    mem.MemFree(buffPtr);
                     throw new MemoryAllocationErrorException();
                 }
                 this.rings[n] = ringAddr;
