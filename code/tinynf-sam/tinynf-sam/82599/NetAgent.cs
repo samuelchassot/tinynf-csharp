@@ -246,6 +246,7 @@ namespace tinynf_sam
                 // Section 7.2.3.2.2 Legacy Transmit Descriptor Format:
                 // "Buffer Address (64)", 1st line offset 0
                 UIntPtr packet = (UIntPtr)((ulong)buffer + n * IxgbeConstants.IXGBE_PACKET_BUFFER_SIZE);
+                *(byte*)packet = 0;
                 UIntPtr packetPhysAddr = mem.TnMemVirtToPhys(packet);
                 if(packetPhysAddr == UIntPtr.Zero)
                 {
