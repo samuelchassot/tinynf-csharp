@@ -12,9 +12,11 @@ namespace Env.linuxx86
         private const uint HUGEPAGE_SIZE_POWER = (10 + 10 + 1);
         private const ulong HUGEPAGE_SIZE = 1ul << (int)HUGEPAGE_SIZE_POWER;
         private readonly ulong SIZE_MAX = UIntPtr.Size == 64 ? 18446744073709551615UL : 4294967295UL;
+        private Dictionary<UIntPtr, MemoryMappedFile> allocatedMemoryMappedFiles;
 
         public Memory()
         {
+            allocatedMemoryMappedFiles = new Dictionary<UIntPtr, MemoryMappedFile>();
         }
 
         [DllImport("libc")]
@@ -38,9 +40,6 @@ namespace Env.linuxx86
             return (UIntPtr)0;
         }
 
-        [DllImport("FunctionsWrapper.so")]
-        private static extern UIntPtr mem_allocate(ulong size, ulong HUGEPAGE_SIZE, ulong HUGEPAGE_SIZE_POWER);
-
         /// <summary>
         /// Allocates memory using MemoryMappedFile.CreateNew().
         /// </summary>
@@ -54,35 +53,60 @@ namespace Env.linuxx86
                 return UIntPtr.Zero;
             }
 
-            UIntPtr ptr = mem_allocate(size, HUGEPAGE_SIZE, HUGEPAGE_SIZE_POWER);
-            (bool okGetAddr, ulong node) = Numa.NumaGetAddrNode(ptr);
-            if (okGetAddr)
+            MemoryMappedFile mappedFile;
+            try
             {
-                if (Numa.NumaIsCurrentNode(node))
+                //the mapName must be null on non-Windows OS
+                mappedFile = MemoryMappedFile.CreateNew(null, (long)size, MemoryMappedFileAccess.ReadWrite, MemoryMappedFileOptions.None, System.IO.HandleInheritability.Inheritable);
+            }
+            catch (Exception)
+            {
+                Util.log.Debug("Tn_mem_allocated: allocation failed");
+                return UIntPtr.Zero;
+            }
+            if (mappedFile != null)
+            {
+                //here we can cast because size is smaller than HUGEPAGE_SIZE = 2^21
+                var accessor = mappedFile.CreateViewAccessor(0, (long)size);
+                byte* poke = null;
+                accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref poke);
+                UIntPtr ptr = (UIntPtr)poke;
+                (bool okGetAddr, ulong node) = Numa.NumaGetAddrNode(ptr);
+                if (okGetAddr)
                 {
-                    return ptr;
+                    if (Numa.NumaIsCurrentNode(node))
+                    {
+                        allocatedMemoryMappedFiles.Add(ptr, mappedFile);
+                        return ptr;
+                    }
+                    else
+                    {
+                        Util.log.Debug("Allocated memory is not in our NUMA node");
+                    }
                 }
                 else
                 {
-                    Util.log.Debug("Allocated memory is not in our NUMA node");
+                    Util.log.Debug("Could not get memory's NUMA node");
                 }
+                mappedFile.Dispose();
             }
-            else
-            {
-                Util.log.Debug("Could not get memory's NUMA node");
-            }
+
+            
             return UIntPtr.Zero;
         }
 
-        [DllImport("FunctionsWrapper.so")]
-        private static extern void mem_free(UIntPtr addr, ulong HUGEPAGE_SIZE);
         /// <summary>
         /// Dispose the MemoryMappedFile object's resources
         /// </summary>
         /// <param name="ptr"><param>
-        public void TnMemFree(UIntPtr ptr)
+        public void MemFree(UIntPtr ptr)
         {
-            mem_free(ptr, HUGEPAGE_SIZE);
+            MemoryMappedFile toFree;
+            if (allocatedMemoryMappedFiles.TryGetValue(ptr, out toFree))
+            {
+                toFree.Dispose();
+            }
+            
             
         }
 
@@ -95,7 +119,7 @@ namespace Env.linuxx86
         /// <param name="addr"></param>
         /// <param name="size"></param>
         /// <returns></returns>
-        public unsafe UIntPtr MePhysToVirt(UIntPtr addr, ulong size)
+        public unsafe UIntPtr MemPhysToVirt(UIntPtr addr, ulong size)
         {
             if(size > SIZE_MAX)
             {
@@ -128,6 +152,7 @@ namespace Env.linuxx86
 
             //So we just call same in C
             var ptr = Memory.mem_phys_to_virt(addr, size);
+            //end of part in C
             if(ptr != (UIntPtr)((void*)-1))
             {
                 return ptr;

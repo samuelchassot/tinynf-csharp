@@ -94,36 +94,3 @@ int get_sc_pagesize()
 {
 	return _SC_PAGESIZE;
 }
-
-uintptr_t mem_allocate(const uint64_t size, const uint64_t HUGEPAGE_SIZE, const int HUGEPAGE_SIZE_POWER)
-{
-	// http://man7.org/linux/man-pages//man2/munmap.2.html
-	void *page = mmap(
-		// No specific address
-		NULL,
-		// Size of the mapping
-		(size_t)HUGEPAGE_SIZE,
-		// R/W page
-		PROT_READ | PROT_WRITE,
-		// Hugepage, not backed by a file (and thus zero-initialized); note that without MAP_SHARED the call fails
-		// MAP_POPULATE means the page table will be populated already (without the need for a page fault later),
-		// which is required if the calling code tries to get the physical address of the page without accessing it first.
-		MAP_HUGETLB | (HUGEPAGE_SIZE_POWER << MAP_HUGE_SHIFT) | MAP_ANONYMOUS | MAP_SHARED | MAP_POPULATE,
-		// Required on MAP_ANONYMOUS
-		-1,
-		// Required on MAP_ANONYMOUS
-		0);
-	if (page == MAP_FAILED)
-	{
-		//TN_DEBUG("Allocate mmap failed");
-		return 0;
-	}
-
-	uintptr_t addr = (uintptr_t)page;
-	return addr;
-}
-
-void mem_free(const uintptr_t addr, const uint64_t HUGEPAGE_SIZE)
-{
-	munmap((void *)addr, (size_t)HUGEPAGE_SIZE);
-}
