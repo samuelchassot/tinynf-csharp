@@ -54,23 +54,47 @@ namespace Env.linuxx86
                 return UIntPtr.Zero;
             }
 
-            UIntPtr ptr = mem_allocate(size, HUGEPAGE_SIZE, HUGEPAGE_SIZE_POWER);
-            (bool okGetAddr, ulong node) = Numa.NumaGetAddrNode(ptr);
-            if (okGetAddr)
+            //this is using mmap in C
+            //UIntPtr ptr = mem_allocate(size, HUGEPAGE_SIZE, HUGEPAGE_SIZE_POWER);
+
+            MemoryMappedFile mappedFile;
+            try
             {
-                if (Numa.NumaIsCurrentNode(node))
+                //the mapName must be null on non-Windows OS
+                mappedFile = MemoryMappedFile.CreateNew(null, (long)size, MemoryMappedFileAccess.ReadWrite, MemoryMappedFileOptions.None, System.IO.HandleInheritability.Inheritable);
+            }
+            catch (Exception)
+            {
+                Util.log.Debug("Tn_mem_allocated: allocation failed");
+                return UIntPtr.Zero;
+            }
+            if (mappedFile != null)
+            {
+                //here we can cast because size is smaller than HUGEPAGE_SIZE = 2^21
+                var accessor = mappedFile.CreateViewAccessor(0, (long)size);
+                byte* poke = null;
+                accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref poke);
+                UIntPtr ptr = (UIntPtr)poke;
+                (bool okGetAddr, ulong node) = Numa.NumaGetAddrNode(ptr);
+                if (okGetAddr)
                 {
-                    return ptr;
+                    if (Numa.NumaIsCurrentNode(node))
+                    {
+                        return ptr;
+                    }
+                    else
+                    {
+                        Util.log.Debug("Allocated memory is not in our NUMA node");
+                    }
                 }
                 else
                 {
-                    Util.log.Debug("Allocated memory is not in our NUMA node");
+                    Util.log.Debug("Could not get memory's NUMA node");
                 }
+                mappedFile.Dispose();
             }
-            else
-            {
-                Util.log.Debug("Could not get memory's NUMA node");
-            }
+
+            
             return UIntPtr.Zero;
         }
 
