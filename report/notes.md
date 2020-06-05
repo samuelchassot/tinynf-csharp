@@ -13,6 +13,7 @@ We need to call C to perform some actions:
 - the value of ```_SG_PAGESIZE``` cannot be known in advance as it depends on the system. It is defined as a C macro so it is mandatory to call C to get its value. (https://www.man7.org/linux/man-pages/man3/sysconf.3.html)
 - outb, outl, inl are defined as macros in C (x86 instructions directly), cannot be called in C# too
 - ```mmap```: cannot use C# version because of reading 0 length files that is impossible (https://github.com/dotnet/runtime/issues/26626). Even .NET framework calls a C library to call ```mmap``` : https://github.com/dotnet/runtime/blob/master/src/libraries/Common/src/Interop/Unix/System.Native/Interop.MMap.cs#L33
+- We can use C# to allocate memory though, using ```MemoryMappedFiles```
 
 
 
