@@ -2,7 +2,7 @@ compile:
 	@./build.sh Release
 
 run:
-	@sudo ./build/tinynf-sam $(TN_ARGS)
+	@sudo ./build/tinynf-csharp $(TN_ARGS)
 
 print-nf-name:
-	@echo tinynf-sam
+	@echo tinynf-csharp
