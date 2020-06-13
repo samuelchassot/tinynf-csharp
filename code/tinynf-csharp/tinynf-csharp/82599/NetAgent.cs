@@ -125,7 +125,7 @@ namespace tinynf_sam
             // 	Section 8.2.3.8.1 Receive Descriptor Base Address Low (RDBAL[n]):
             // 	"The receive descriptor base address must point to a 128 byte-aligned block of data."
             // This alignment is guaranteed by the agent initialization
-            UIntPtr ringPhysAddr = mem.TnMemVirtToPhys(this.rings[0]);
+            UIntPtr ringPhysAddr = mem.MemVirtToPhys(this.rings[0]);
             if (ringPhysAddr == UIntPtr.Zero)
             {
                 Util.log.Debug("Could not get phys addr of main ring");
@@ -249,7 +249,7 @@ namespace tinynf_sam
                 // Write a 0 in the page to force the system to load the page into memory
                 *(byte*)packet = 0;
 
-                UIntPtr packetPhysAddr = mem.TnMemVirtToPhys(packet);
+                UIntPtr packetPhysAddr = mem.MemVirtToPhys(packet);
                 if(packetPhysAddr == UIntPtr.Zero)
                 {
                     Util.log.Debug("Could not get a packet's physical address for ring n = " + n);
@@ -264,7 +264,7 @@ namespace tinynf_sam
             // 	Section 8.2.3.9.5 Transmit Descriptor Base Address Low (TDBAL[n]):
             // 	"The Transmit Descriptor Base Address must point to a 128 byte-aligned block of data."
             // This alignment is guaranteed by the agent initialization
-            UIntPtr ringPhysAddr = mem.TnMemVirtToPhys((UIntPtr)ring);
+            UIntPtr ringPhysAddr = mem.MemVirtToPhys((UIntPtr)ring);
             if(ringPhysAddr == UIntPtr.Zero)
             {
                 Util.log.Debug("Could not get a transmit ring's physical address");
@@ -294,7 +294,7 @@ namespace tinynf_sam
             //SAM SPECIFIC
             // here in C : !tn_mem_virt_to_phys((uintptr_t) & (agent->transmit_heads[outputs_count * TRANSMIT_HEAD_MULTIPLIER]), &head_phys_addr)
             // so we need transmitHeadsPtr + outputsCount*TRANSMIT_HEAD_MULTIPLIER*4 (*4 because it is an uint32_t array in C)
-            UIntPtr headPhysAddr = mem.TnMemVirtToPhys((UIntPtr)((ulong)transmitHeadsPtr + outputsCount*TRANSMIT_HEAD_MULTIPLIER*4));
+            UIntPtr headPhysAddr = mem.MemVirtToPhys((UIntPtr)((ulong)transmitHeadsPtr + outputsCount*TRANSMIT_HEAD_MULTIPLIER*4));
             if (headPhysAddr == UIntPtr.Zero)
             {
                 Util.log.Debug("Could not get the physical address of the transmit head");

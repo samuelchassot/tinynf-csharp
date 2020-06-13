@@ -165,7 +165,7 @@ namespace Env.linuxx86
         [DllImport(@"FunctionsWrapper.so")]
         private static unsafe extern int mem_virt_to_phys(UIntPtr page, UIntPtr map_offset, ulong* out_metadata);
 
-        public unsafe UIntPtr TnMemVirtToPhys(UIntPtr addr)
+        public unsafe UIntPtr MemVirtToPhys(UIntPtr addr)
         {
             UIntPtr pageSize = GetPageSize();
             if(pageSize == (UIntPtr)0)
