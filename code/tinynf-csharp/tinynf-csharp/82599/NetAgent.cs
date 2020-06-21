@@ -417,8 +417,8 @@ namespace tinynf_sam
 
             // Increment the processed delimiter, modulo the ring size
             processedDelimiter = (processedDelimiter + 1u) & (IxgbeConstants.IXGBE_RING_SIZE - 1);
-            // Flush if we need to, i.e., 2nd part of the processor
-            // Done here so that latency is minimal in low-load cases
+            // No packet; flush if we need to.
+            // This is technically a part of transmission, but we must eventually flush after processing a packet even if no more packets are received
             if ((flushedProcessedDelimiter == ulong.MaxValue) || (processedDelimiter == ((flushedProcessedDelimiter + IxgbeConstants.IXGBE_AGENT_PROCESS_PERIOD) & (IxgbeConstants.IXGBE_RING_SIZE - 1))))
             {
                 for (ulong n = 0; n < IxgbeConstants.IXGBE_AGENT_OUTPUTS_MAX; n++)
@@ -428,7 +428,7 @@ namespace tinynf_sam
                 flushedProcessedDelimiter = processedDelimiter;
             }
 
-            // Transmitter 2nd part, moving descriptors to the receive pool
+            // Move transmitted descriptors back to receiving
             // This should happen as rarely as the update period since that's the period controlling transmit head updates from the NIC
             // Doing it here allows us to (1) reuse rs_bit and (2) make less divergent paths for symbolic execution (as opposed to doing it in receive)
             if (rsBit != 0)
@@ -437,7 +437,8 @@ namespace tinynf_sam
                 uint earliestTransmitHead = (uint)processedDelimiter;
                 ulong minDiff = ulong.MaxValue;
 
-                // Race conditions are possible here, but all they can do is make our "earliest transmit head" value too low, which is fine
+                // There is an implicit race condition with the hardware: a transmit head could be updated just after we've read it
+                // but before we write to the receive tail. This is fine; it just means our "earliest transmit head" is not as high as it could be.
                 for (ulong n = 0; n < outputsCount; n++)
                 {
                     uint head = Volatile.Read(ref *((uint*)transmitHeadsPtr + n * TRANSMIT_HEAD_MULTIPLIER)); //in C: uint32_t head = agent->transmit_heads[n * TRANSMIT_HEAD_MULTIPLIER];
